@@ -1,0 +1,135 @@
+server:
+  port: 10000
+  servlet:
+    session:
+      timeout: 30m
+
+spring:
+  application:
+    name: jrunmall-product
+  datasource:
+    username: ${JRUNMALL_MYSQL_USERNAME:${GULIMALL_MYSQL_USERNAME:root}}
+    password: ${JRUNMALL_MYSQL_PASSWORD:${GULIMALL_MYSQL_PASSWORD:root}}
+    url: jdbc:mysql://${JRUNMALL_MYSQL_HOST:${GULIMALL_MYSQL_HOST:127.0.0.1}}:${JRUNMALL_MYSQL_PORT:${GULIMALL_MYSQL_PORT:3306}}/jrunmall_pms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${JRUNMALL_NACOS_ADDR:${GULIMALL_NACOS_ADDR:127.0.0.1:8848}}
+    sentinel:
+      transport:
+        dashboard: ${JRUNMALL_SENTINEL_DASHBOARD:${GULIMALL_SENTINEL_DASHBOARD:127.0.0.1:8858}}
+
+  redis:
+    host: ${JRUNMALL_REDIS_HOST:${GULIMALL_REDIS_HOST:127.0.0.1}}
+    port: ${JRUNMALL_REDIS_PORT:${GULIMALL_REDIS_PORT:6379}}
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+
+  thymeleaf:
+    cache: false
+
+  session:
+    store-type: redis
+
+feign:
+  sentinel:
+    enabled: true
+
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+logging:
+  level:
+    com.shf.gulimall: debug
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+gulimall:
+  demo-user:
+    user-id: ${JRUNMALL_DEMO_USER_ID:${GULIMALL_DEMO_USER_ID:900001}}
+    username: ${JRUNMALL_DEMO_USERNAME:${GULIMALL_DEMO_USERNAME:jrunmall_demo}}
+    display-name: ${JRUNMALL_DEMO_DISPLAY_NAME:${GULIMALL_DEMO_DISPLAY_NAME:Jrunmall Demo User}}
+  ai:
+    enabled: ${JRUNMALL_AI_ENABLED:${GULIMALL_AI_ENABLED:true}}
+    base-url: ${JRUNMALL_AI_BASE_URL:${GULIMALL_AI_BASE_URL:http://127.0.0.1:18080}}
+    product-copy-path: ${JRUNMALL_AI_PRODUCT_COPY_PATH:${GULIMALL_AI_PRODUCT_COPY_PATH:/api/product-copy/generate}}
+    connect-timeout-ms: ${JRUNMALL_AI_CONNECT_TIMEOUT_MS:${GULIMALL_AI_CONNECT_TIMEOUT_MS:2000}}
+    read-timeout-ms: ${JRUNMALL_AI_READ_TIMEOUT_MS:${GULIMALL_AI_READ_TIMEOUT_MS:60000}}
+  site:
+    main-base-url: ${JRUNMALL_SITE_MAIN_BASE_URL:${GULIMALL_SITE_MAIN_BASE_URL:http://jrunmall.localhost}}
+    auth-base-url: ${JRUNMALL_SITE_AUTH_BASE_URL:${GULIMALL_SITE_AUTH_BASE_URL:http://auth.jrunmall.localhost}}
+    member-base-url: ${JRUNMALL_SITE_MEMBER_BASE_URL:${GULIMALL_SITE_MEMBER_BASE_URL:http://member.jrunmall.localhost}}
+    cart-base-url: ${JRUNMALL_SITE_CART_BASE_URL:${GULIMALL_SITE_CART_BASE_URL:http://cart.jrunmall.localhost}}
+    search-base-url: ${JRUNMALL_SITE_SEARCH_BASE_URL:${GULIMALL_SITE_SEARCH_BASE_URL:http://search.jrunmall.localhost}}
+    item-base-url: ${JRUNMALL_SITE_ITEM_BASE_URL:${GULIMALL_SITE_ITEM_BASE_URL:http://item.jrunmall.localhost}}
+    seckill-base-url: ${JRUNMALL_SITE_SECKILL_BASE_URL:${GULIMALL_SITE_SECKILL_BASE_URL:http://seckill.jrunmall.localhost}}
+    cookie-domain: ${JRUNMALL_SITE_COOKIE_DOMAIN:${GULIMALL_SITE_COOKIE_DOMAIN:}}
+
+jrunmall:
+  ai:
+    enabled: ${JRUNMALL_AI_ENABLED:${GULIMALL_AI_ENABLED:true}}
+    base-url: ${JRUNMALL_AI_BASE_URL:${GULIMALL_AI_BASE_URL:http://127.0.0.1:18080}}
+    product-copy-path: ${JRUNMALL_AI_PRODUCT_COPY_PATH:${GULIMALL_AI_PRODUCT_COPY_PATH:/api/product-copy/generate}}
+    models-path: ${JRUNMALL_AI_MODELS_PATH:/api/models}
+    knowledge-bases-path: ${JRUNMALL_AI_KNOWLEDGE_BASES_PATH:/api/knowledge-bases}
+    merchant-knowledge-bases-path: ${JRUNMALL_AI_MERCHANT_KNOWLEDGE_BASES_PATH:/api/merchant/knowledge-bases}
+    connect-timeout-ms: ${JRUNMALL_AI_CONNECT_TIMEOUT_MS:${GULIMALL_AI_CONNECT_TIMEOUT_MS:2000}}
+    read-timeout-ms: ${JRUNMALL_AI_READ_TIMEOUT_MS:${GULIMALL_AI_READ_TIMEOUT_MS:60000}}
+    langchain4j-enabled: ${JRUNMALL_AI_LANGCHAIN4J_ENABLED:true}
+    # 在项目根目录 .env.local 或系统环境变量中填写真实密钥：
+    # JRUNMALL_AI_LANGCHAIN4J_API_KEY=sk-...
+    langchain4j-api-key: ${JRUNMALL_AI_LANGCHAIN4J_API_KEY:${GULIMALL_AI_LANGCHAIN4J_API_KEY:${OPENAI_API_KEY:}}}
+    langchain4j-base-url: ${JRUNMALL_AI_LANGCHAIN4J_BASE_URL:https://api.openai.com/v1}
+    langchain4j-models: ${JRUNMALL_AI_LANGCHAIN4J_MODELS:gpt-4o-mini}
+    langchain4j-temperature: ${JRUNMALL_AI_LANGCHAIN4J_TEMPERATURE:0.4}
+    deepseek-api-key: ${JRUNMALL_AI_DEEPSEEK_API_KEY:${GULIMALL_AI_DEEPSEEK_API_KEY:${DEEPSEEK_API_KEY:}}}
+    deepseek-base-url: ${JRUNMALL_AI_DEEPSEEK_BASE_URL:https://api.deepseek.com}
+    deepseek-model: ${JRUNMALL_AI_DEEPSEEK_MODEL:deepseek-chat}
+    deepseek-models: ${JRUNMALL_AI_DEEPSEEK_MODELS:}
+    qwen-api-key: ${JRUNMALL_AI_QWEN_API_KEY:${GULIMALL_AI_QWEN_API_KEY:${QWEN_API_KEY:${DASHSCOPE_API_KEY:${ALIYUN_API_KEY:${ALIBABA_CLOUD_API_KEY:}}}}}}
+    qwen-base-url: ${JRUNMALL_AI_QWEN_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+    qwen-model: ${JRUNMALL_AI_QWEN_MODEL:qwen3-max}
+    qwen-models: ${JRUNMALL_AI_QWEN_MODELS:}
+  platform:
+    user-side:
+      database: mysql
+      cache: redis
+      seckill-service-url: ${JRUNMALL_SECKILL_SERVICE_URL:http://127.0.0.1:19090}
+      seckill-activity-id: ${JRUNMALL_SECKILL_ACTIVITY_ID:flash-20260429}
+      seckill-sku-id: ${JRUNMALL_SECKILL_SKU_ID:14}
+      seckill-limit-per-order: ${JRUNMALL_SECKILL_LIMIT_PER_ORDER:1}
+      seckill-warmup-stock: ${JRUNMALL_SECKILL_WARMUP_STOCK:50}
+      seckill-auto-warmup-on-sold-out: ${JRUNMALL_SECKILL_AUTO_WARMUP_ON_SOLD_OUT:true}
+    merchant-side:
+      database: postgresql
+      cache: redis
+      reporting-schema: ${JRUNMALL_MERCHANT_REPORTING_SCHEMA:jrunmall_merchant}
+    middleware:
+      gateway: jrunmall-gateway
+      contract: rest-openapi
+      event-stream: redis-streams
+      observability: structured-logs
+      seckill-stream-name: ${JRUNMALL_SECKILL_STREAM:jrunmall:seckill:orders}
+      seckill-consumer-group: ${JRUNMALL_SECKILL_CONSUMER_GROUP:jrunmall-order-group}
+      seckill-consumer-name: ${JRUNMALL_SECKILL_CONSUMER_NAME:jrunmall-product-local}
+      seckill-key-prefix: ${JRUNMALL_SECKILL_KEY_PREFIX:jrunmall:seckill}
+
+
+
+
+
+
+
+

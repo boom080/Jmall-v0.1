@@ -1,0 +1,59 @@
+﻿server:
+  port: ${JRUNMALL_MEMBER_PORT:${GULIMALL_MEMBER_PORT:8000}}
+
+spring:
+  autoconfigure:
+    exclude:
+      - com.alibaba.cloud.sentinel.SentinelWebAutoConfiguration
+      - com.alibaba.cloud.sentinel.SentinelWebFluxAutoConfiguration
+      - com.alibaba.cloud.sentinel.endpoint.SentinelEndpointAutoConfiguration
+      - com.alibaba.cloud.sentinel.custom.SentinelAutoConfiguration
+      - com.alibaba.cloud.sentinel.feign.SentinelFeignAutoConfiguration
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      enabled: false
+  datasource:
+    username: ${JRUNMALL_MYSQL_USERNAME:${GULIMALL_MYSQL_USERNAME:root}}
+    password: ${JRUNMALL_MYSQL_PASSWORD:${GULIMALL_MYSQL_PASSWORD:123456}}
+    url: jdbc:mysql://${JRUNMALL_MYSQL_HOST:${GULIMALL_MYSQL_HOST:127.0.0.1}}:${JRUNMALL_MYSQL_PORT:${GULIMALL_MYSQL_PORT:3306}}/jrunmall_ums?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: ${JRUNMALL_REDIS_HOST:${GULIMALL_REDIS_HOST:127.0.0.1}}
+    port: ${JRUNMALL_REDIS_PORT:${GULIMALL_REDIS_PORT:6379}}
+  session:
+    store-type: none
+  cloud:
+    nacos:
+      config:
+        enabled: false
+      discovery:
+        enabled: false
+    sentinel:
+      transport:
+        enabled: false
+  zipkin:
+    enabled: false
+  sleuth:
+    enabled: false
+
+management:
+  health:
+    db:
+      enabled: false
+    redis:
+      enabled: false
+
+gulimall:
+  session:
+    redis:
+      enabled: false
+
+
+
+
+
+
+
+

@@ -1,0 +1,62 @@
+﻿server:
+  port: 8000
+
+spring:
+  datasource:
+    username: ${JRUNMALL_MYSQL_USERNAME:${GULIMALL_MYSQL_USERNAME:root}}
+    password: ${JRUNMALL_MYSQL_PASSWORD:${GULIMALL_MYSQL_PASSWORD:root}}
+    url: jdbc:mysql://${JRUNMALL_MYSQL_HOST:${GULIMALL_MYSQL_HOST:127.0.0.1}}:${JRUNMALL_MYSQL_PORT:${GULIMALL_MYSQL_PORT:3306}}/jrunmall_ums?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${JRUNMALL_NACOS_ADDR:${GULIMALL_NACOS_ADDR:127.0.0.1:8848}}
+
+    sentinel:
+      transport:
+        #配置sentinel dashboard地址
+        dashboard: ${JRUNMALL_SENTINEL_DASHBOARD:${GULIMALL_SENTINEL_DASHBOARD:127.0.0.1:8858}}
+
+  redis:
+    port: ${JRUNMALL_REDIS_PORT:${GULIMALL_REDIS_PORT:6379}}
+    host: ${JRUNMALL_REDIS_HOST:${GULIMALL_REDIS_HOST:127.0.0.1}}
+  application:
+    name: jrunmall-member
+
+#开启feign对sentinel的支持
+feign:
+  sentinel:
+    enabled: true
+
+  application:
+    name: jrunmall-member
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+
+  session:
+    store-type: redis
+
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+
+  global-config:
+    db-config:
+      id-type: auto
+
+
+#暴露所有端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+
+
+
+
+
+
+
+

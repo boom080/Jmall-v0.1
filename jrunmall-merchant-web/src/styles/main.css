@@ -1,0 +1,157 @@
+:root {
+  font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+  color: #1f2330;
+  background: #f3f5f8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #f4f6f9 0%, #edf2f7 100%);
+}
+
+a {
+  text-decoration: none;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.merchant-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.merchant-shell__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 18px;
+  background: #132a3a;
+}
+
+.merchant-shell__sidebar a,
+.merchant-shell__brand {
+  color: #f7fbff;
+}
+
+.merchant-shell__brand {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.merchant-shell__sidebar a {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.merchant-shell__content {
+  padding: 24px;
+}
+
+.merchant-shell__header h1 {
+  margin: 0 0 20px;
+}
+
+.merchant-page-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.merchant-page-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.merchant-page-grid--wide {
+  grid-template-columns: 1.1fr 0.9fr;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-eyebrow,
+.result-panel__label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: #4a6c88;
+  font-weight: 700;
+}
+
+.table-cover {
+  width: 72px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.inline-tag {
+  margin: 0 8px 8px 0;
+}
+
+.merchant-alert {
+  margin-bottom: 16px;
+}
+
+.merchant-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.result-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.result-panel__tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.result-panel__cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.result-panel__highlights {
+  padding-left: 18px;
+  line-height: 1.7;
+}
+
+@media (max-width: 960px) {
+  .merchant-shell,
+  .merchant-page-grid,
+  .merchant-page-grid--wide {
+    display: block;
+  }
+
+  .merchant-shell__sidebar {
+    padding-bottom: 18px;
+  }
+
+  .merchant-shell__content {
+    padding: 16px;
+  }
+
+  .merchant-page-grid > * {
+    margin-bottom: 16px;
+  }
+}
