@@ -1,0 +1,169 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: jmall-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${JMALL_MYSQL_ROOT_PASSWORD:-jmall123}
+      MYSQL_DATABASE: jmall
+      TZ: Asia/Shanghai
+    ports:
+      - "${JMALL_MYSQL_PORT:-3306}:3306"
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - jmall_mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p${JMALL_MYSQL_ROOT_PASSWORD:-jmall123}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: jmall-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${JMALL_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${JMALL_POSTGRES_PASSWORD:-jmall123}
+      POSTGRES_DB: ${JMALL_POSTGRES_DB:-jmall_rag}
+      TZ: Asia/Shanghai
+      PGTZ: Asia/Shanghai
+    ports:
+      - "${JMALL_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - jmall_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${JMALL_POSTGRES_USER:-postgres} -d ${JMALL_POSTGRES_DB:-jmall_rag}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: jmall-redis
+    restart: unless-stopped
+    ports:
+      - "${JMALL_REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - jmall_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./jmall-backend
+    container_name: jmall-backend
+    restart: unless-stopped
+    ports:
+      - "10301:10301"
+    environment:
+      JMALL_MYSQL_HOST: mysql
+      JMALL_MYSQL_PORT: 3306
+      JMALL_MYSQL_USERNAME: root
+      JMALL_MYSQL_PASSWORD: ${JMALL_MYSQL_ROOT_PASSWORD:-jmall123}
+      JMALL_REDIS_HOST: redis
+      JMALL_REDIS_PORT: 6379
+      JMALL_AI_BASE_URL: http://agent:18080
+      JMALL_UPLOAD_DIR: /app/uploads
+    volumes:
+      - jmall_upload_data:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  agent:
+    build: ./jmall-agent
+    container_name: jmall-agent
+    restart: unless-stopped
+    ports:
+      - "18080:18080"
+    environment:
+      AI_SERVICE_HOST: 0.0.0.0
+      AI_SERVICE_PORT: 18080
+      DATABASE_URL: postgresql://${JMALL_POSTGRES_USER:-postgres}:${JMALL_POSTGRES_PASSWORD:-jmall123}@postgres:5432/${JMALL_POSTGRES_DB:-jmall_rag}
+      REDIS_URL: redis://redis:6379
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      DEEPSEEK_API_KEY: ${JMALL_DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      QWEN_API_KEY: ${JMALL_QWEN_API_KEY:-}
+      QWEN_BASE_URL: ${QWEN_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      TAVILY_API_KEY: ${JMALL_TAVILY_API_KEY:-}
+      AGENT_STRONG_PROVIDER: ${AGENT_STRONG_PROVIDER:-}
+      AGENT_STRONG_MODEL: ${AGENT_STRONG_MODEL:-}
+      AGENT_MEDIUM_PROVIDER: ${AGENT_MEDIUM_PROVIDER:-}
+      AGENT_MEDIUM_MODEL: ${AGENT_MEDIUM_MODEL:-}
+      AGENT_CHEAP_PROVIDER: ${AGENT_CHEAP_PROVIDER:-}
+      AGENT_CHEAP_MODEL: ${AGENT_CHEAP_MODEL:-}
+      RAG_EMBEDDING_PROVIDER: ${RAG_EMBEDDING_PROVIDER:-}
+      RAG_EMBEDDING_BASE_URL: ${RAG_EMBEDDING_BASE_URL:-}
+      RAG_EMBEDDING_API_KEY: ${RAG_EMBEDDING_API_KEY:-}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-}
+      RAG_EMBEDDING_DIMENSION: ${RAG_EMBEDDING_DIMENSION:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./jmall-web
+    container_name: jmall-frontend
+    restart: unless-stopped
+    ports:
+      - "5175:80"
+    depends_on:
+      - backend
+      - agent
+
+  bench:
+    build: ./jmall-bench
+    container_name: jmall-bench
+    restart: unless-stopped
+    ports:
+      - "19090:19090"
+    environment:
+      JRUNMALL_SECKILL_REDIS_URL: redis://redis:6379
+      JRUNMALL_SECKILL_PORT: 19090
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: jmall-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: jmall-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${JMALL_GRAFANA_PASSWORD:-jmall123}
+    volumes:
+      - jmall_grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+volumes:
+  jmall_mysql_data:
+  jmall_postgres_data:
+  jmall_redis_data:
+  jmall_grafana_data:
+  jmall_upload_data:

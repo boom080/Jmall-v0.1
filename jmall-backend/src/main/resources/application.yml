@@ -1,0 +1,37 @@
+server:
+  port: 10301
+
+spring:
+  application:
+    name: jmall-backend
+  datasource:
+    url: jdbc:mysql://${JMALL_MYSQL_HOST:127.0.0.1}:${JMALL_MYSQL_PORT:3306}/jmall?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${JMALL_MYSQL_USERNAME:root}
+    password: ${JMALL_MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${JMALL_REDIS_HOST:127.0.0.1}
+      port: ${JMALL_REDIS_PORT:6379}
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.jmall.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+jmall:
+  upload:
+    dir: ${JMALL_UPLOAD_DIR:uploads}
+  jwt:
+    secret: ${JMALL_JWT_SECRET:jmall-jwt-secret-key-2024-long-enough-for-hs256!!}
+    expiration: 86400000
+  ai:
+    base-url: ${JMALL_AI_BASE_URL:http://127.0.0.1:18080}

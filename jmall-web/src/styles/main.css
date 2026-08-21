@@ -1,0 +1,134 @@
+/* ========== Jmall Global Styles ========== */
+
+:root {
+  --primary: #6c5ce7;
+  --primary-light: #a29bfe;
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --danger: #e17055;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --border-color: #e8e8e8;
+  --gold: #ffd700;
+  --radius: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== Top Navigation Bar ========== */
+.jmall-topbar {
+  height: 64px;
+  background: white;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-logo {
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s;
+}
+.app-logo:hover { transform: scale(1.05); }
+
+.app-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.gold-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px;
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  border-radius: 20px;
+  border: 1px solid #ffd700;
+}
+
+.gold-amount {
+  font-weight: bold;
+  color: #d4a017;
+  font-size: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+.user-info:hover { background: var(--bg-secondary); }
+
+.username { font-size: 14px; font-weight: 500; }
+
+/* ========== Transitions ========== */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* ========== Scrollbar ========== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+/* ========== Style Theme Variables ========== */
+/* Applied to specific product cards via card-style-* class */
+.card-style-pinduoduo {
+  --card-primary: #e02e24;
+  --card-accent: #ff6b35;
+}
+
+.card-style-taobao {
+  --card-primary: #ff5000;
+  --card-accent: #ff8c38;
+}
+
+.card-style-jd {
+  --card-primary: #c91623;
+  --card-accent: #e4393c;
+}
+
+.card-style-suning {
+  --card-primary: #0066cc;
+  --card-accent: #3388ff;
+}
+
+.card-style-xiaohongshu {
+  --card-primary: #ff2442;
+  --card-accent: #ff6b81;
+}
