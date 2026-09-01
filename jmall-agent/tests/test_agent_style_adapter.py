@@ -75,7 +75,8 @@ def test_style_adapter_falls_back_on_error(base_state, settings, llm_router, cos
     adapted_title = style_previews.get("adapted_title", "")
     assert len(adapted_title) > 0 or style_previews.get("target_style") is not None
     assert style_previews["fallback"] is True
-    assert "Simulated LLM failure" in style_previews["error"]
+    assert "平台模型输出不可用" in style_previews["error"]
+    assert "Simulated LLM failure" not in style_previews["error"]
 
 
 def test_get_available_styles_returns_all_profiles(base_state, settings, provider_factory, llm_router, cost_tracker):
@@ -98,7 +99,7 @@ def test_style_profiles_have_required_fields(base_state, settings, provider_fact
             assert field in profile, f"Style '{style_id}' missing required field: {field}"
 
 
-def test_style_adapter_rejects_experience_claims_and_returns_five_previews(
+def test_style_adapter_rejects_experience_claims_and_returns_one_preview(
     base_state, settings, llm_router, cost_tracker
 ):
     class UnsafeProviderFactory(ProviderFactory):
@@ -134,7 +135,7 @@ def test_style_adapter_rejects_experience_claims_and_returns_five_previews(
 
     import asyncio
     result = asyncio.run(agent.run(state))["style_previews"]
-    assert set(result["previews"]) == set(STYLE_PROFILES)
+    assert set(result["previews"]) == {state["target_style"]}
     serialized = json.dumps(result, ensure_ascii=False)
     for unsafe in ["我上周囤了3盒", "没有人工色素", "我家孩子最爱"]:
         assert unsafe not in serialized
@@ -184,7 +185,7 @@ def test_style_adapter_blocks_fabricated_social_proof_title(
     serialized = json.dumps(result, ensure_ascii=False)
     assert "朋友追着问链接" not in serialized
     assert "不挑肤色" not in serialized
-    assert result["adapted_title"].startswith("今日穿搭灵感｜")
+    assert result["adapted_title"] == state["product_info"]["title"]
 
 
 def test_style_adapter_blocks_research_claims_and_personal_story(
@@ -237,6 +238,7 @@ def test_style_adapter_blocks_research_claims_and_personal_story(
         "上周穿去咖啡店", "陌生人要了三次链接", "秋冬必备", "穿着舒适",
     ]:
         assert unsafe not in serialized
-    assert result["adapted_title"].startswith("今日穿搭灵感｜")
-    assert "【商品概览】" in result["adapted_detail"]
-    assert "【购买前核对】" in result["adapted_detail"]
+    assert result["adapted_title"] == state["product_info"]["title"]
+    assert "【场景灵感】" in result["adapted_detail"]
+    assert "待确认" not in result["adapted_detail"]
+    assert result["pending_confirmations"]

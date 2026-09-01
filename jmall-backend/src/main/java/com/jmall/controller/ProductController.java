@@ -27,6 +27,21 @@ public class ProductController {
         return productService.update(id, request);
     }
 
+    @PostMapping("/{id}/publish-check")
+    public R publishCheck(@PathVariable Long id) {
+        return productService.publishCheck(id);
+    }
+
+    @PostMapping("/{id}/publish")
+    public R publish(@PathVariable Long id) {
+        return productService.publish(id);
+    }
+
+    @PostMapping("/{id}/unpublish")
+    public R unpublish(@PathVariable Long id) {
+        return productService.unpublish(id);
+    }
+
     @GetMapping("/{id}")
     public R getById(@PathVariable Long id,
                      @RequestParam(required = false, defaultValue = "true") Boolean trackView) {

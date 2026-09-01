@@ -6,38 +6,16 @@ import re
 from typing import Any, Dict, List, Optional
 
 from app.agents.base import BaseAgent
+from app.platform_skills.registry import PLATFORM_SKILLS, normalize_platform
 from app.retrieval.rag_retriever import assess_rag_quality
 from app.retrieval.service import RetrievalService
 
 logger = logging.getLogger(__name__)
 
-# Supported e-commerce platform styles
+# Supported platforms are derived from the versioned skill registry.
 SUPPORTED_STYLES = {
-    "pinduoduo": {
-        "name": "拼多多",
-        "description": "价格导向、紧迫感强、口语化、强调拼团和低价",
-        "tone": "marketing",
-    },
-    "taobao": {
-        "name": "淘宝",
-        "description": "丰富多元、突出卖点、SEO友好、适合搜索曝光",
-        "tone": "professional",
-    },
-    "jd": {
-        "name": "京东",
-        "description": "品质导向、强调正品和物流、参数详细、专业规范",
-        "tone": "professional",
-    },
-    "suning": {
-        "name": "苏宁",
-        "description": "家电风格、强调售后和服务、品牌信任感",
-        "tone": "warm",
-    },
-    "xiaohongshu": {
-        "name": "小红书",
-        "description": "种草风格、生活方式化、真实体验分享、年轻化表达",
-        "tone": "warm",
-    },
+    key: {"name": skill.name, "description": "、".join(skill.characteristics), "tone": skill.tone}
+    for key, skill in PLATFORM_SKILLS.items()
 }
 
 
@@ -132,10 +110,10 @@ class CopywriterAgent(BaseAgent):
     SYSTEM_PROMPT = (
         "你是资深电商文案。生成可直接回填商品编辑器的结构化商品资料。\n\n"
         "你的职责：\n"
-        "1. 根据商品信息和目标平台风格，创作高质量电商文案\n"
-        "2. 生成3个不同角度的商品标题\n"
-        "3. 提炼5条核心卖点\n"
-        "4. 撰写350至900字的详情页文案，至少包含商品概览、核心亮点、规格参数、适用人群与场景、购买前核对\n"
+        "1. 整理平台中立的商品事实底稿；最终表达由下游唯一平台Skill完成\n"
+        "2. 生成一个忠实于输入的商品标题\n"
+        "3. 提炼最多5条已确认卖点，不凑数\n"
+        "4. 根据已有事实撰写详情，信息量少就简写，不凑字数\n"
         "5. 提供短视频口播脚本（30秒版）\n"
         "6. 生成副标题、规格建议、目标人群、使用场景、SEO关键词和促销短文案\n"
         "7. 仅在有市场依据时给出价格建议，否则 price_suggestion 输出 null\n\n"
@@ -144,13 +122,13 @@ class CopywriterAgent(BaseAgent):
         "- 不得伪造第一人称体验、亲友评价、购买/囤货经历、儿童/孕妇等适用人群\n"
         "- 不得声称未提供的配料、添加剂、营养、功效、包装标签、口感或内部结构\n"
         '- 不要主动生成未提供的认证、销量、排名、保修、适用人数、材质等级\n'
-        '- 如果信息不足，用"请商家确认……"表达\n'
+        '- 如果信息不足，只放入pending_confirmations，不写入正文\n'
         "- 避免使用绝对化用语：'最好'、'第一'、'100%'、'永不'、'绝对'等\n"
         "- RAG资料只作为文案结构和写法参考，不代表当前商品一定具备其中所有特性\n\n"
         "输出要求：\n"
         "请只输出 JSON，不要输出 Markdown。JSON 格式：\n"
         "{\n"
-        '  "titles": ["标题版本1", "标题版本2", "标题版本3"],\n'
+        '  "titles": ["商品标题"],\n'
         '  "selling_points": ["卖点1", "卖点2", "卖点3", "卖点4", "卖点5"],\n'
         '  "detail_copy": "详情页完整文案（含分段和场景描述）",\n'
         '  "short_video_script": "30秒短视频口播脚本",\n'
@@ -185,7 +163,7 @@ class CopywriterAgent(BaseAgent):
             State update with copy_drafts
         """
         product_info = state.get("product_info", {})
-        target_style = state.get("target_style", "taobao")
+        target_style = normalize_platform(state.get("target_style", "taobao"))
         market_research = state.get("market_research", {})
         knowledge_base_id = state.get("knowledge_base_id", "")
 
@@ -194,7 +172,7 @@ class CopywriterAgent(BaseAgent):
         description = product_info.get("description", "")
         price = product_info.get("price", "")
 
-        style_config = SUPPORTED_STYLES.get(target_style, SUPPORTED_STYLES["taobao"])
+        style_config = SUPPORTED_STYLES[target_style]
         logger.info(
             "CopywriterAgent: generating copy for '%s' in style '%s' (%s)",
             title, target_style, style_config["name"],
@@ -500,7 +478,7 @@ class CopywriterAgent(BaseAgent):
         """Build the complete prompt for copy generation."""
         parts = [
             "【生成任务】",
-            f"目标平台：{style_name}（{style_desc}）",
+            "本阶段只整理商品事实底稿，平台表达由下游平台Skill负责。",
             f"商品标题：{title}",
             f"商品分类：{category}",
             f"商品描述：{description or '无额外描述'}",
@@ -523,10 +501,7 @@ class CopywriterAgent(BaseAgent):
         if rag_context:
             parts.append(f"\n{rag_context}")
 
-        parts.append(
-            "\n请根据以上信息生成符合{0}风格的商品文案。".format(style_name)
-        )
-        parts.append("注意：标题需控制在30字以内，卖点每条不超过15字；详情页需写成350至900字的分段长文案。")
+        parts.append("请生成一个平台中立的商品事实底稿；标题只给一个，详情不凑字数，未知项单列。")
 
         return "\n".join(parts)
 

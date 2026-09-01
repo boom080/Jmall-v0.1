@@ -16,10 +16,10 @@ Graph structure (corrected data dependencies):
         copy_generation    (consumes market_research + rag_context)
                │
                ▼
-        compliance_review
+        style_adaptation
                │
                ▼
-        style_adaptation
+        compliance_review
                │
                ▼
         aggregate_results -> END
@@ -41,11 +41,14 @@ from langgraph.graph import END, StateGraph
 from langgraph.types import Send
 
 from app.agents.copywriter import CopywriterAgent
+from app.agents.input_gate import assess_product_input
 from app.agents.market_research import MarketResearchAgent
 from app.agents.orchestrator import OrchestratorAgent
 from app.agents.reviewer import ReviewerAgent
 from app.agents.style_adapter import StyleAdapterAgent
 from app.core.config import Settings
+from app.core.metrics import GenerationObservation
+from app.services.input_assessment_service import assess_input_at_boundary
 from app.llm.cost_tracker import CostTracker
 from app.llm.router import LLMRouter
 from app.providers.factory import ProviderFactory
@@ -73,6 +76,7 @@ class AgentGraphState(TypedDict, total=False):
     target_style: Annotated[str, _last_wins]
     knowledge_base_id: Annotated[str, _last_wins]
     # Intermediate results
+    input_assessment: Annotated[Optional[dict], _last_wins]
     orchestration_plan: Annotated[Optional[dict], _last_wins]
     market_research: Annotated[Optional[dict], _last_wins]
     rag_context: Annotated[Optional[str], _last_wins]       # Pre-retrieved RAG context
@@ -182,7 +186,7 @@ class AgentOrchestratorGraph:
         """Build the LangGraph StateGraph for multi-agent orchestration.
 
         Graph structure (corrected for data dependencies):
-            START -> parse_intent
+            START -> input_assessment -> parse_intent
                        |
                  ┌─────┴─────────┐  (parallel)
                  ▼                 ▼
@@ -201,6 +205,9 @@ class AgentOrchestratorGraph:
         graph = StateGraph(AgentGraphState)
 
         # Add nodes
+        # Node names cannot equal state channel names in LangGraph.
+        graph.add_node("input_gate", self._assess_input)
+        graph.add_node("finalize_input_gate", self._finalize_input_assessment)
         graph.add_node("parse_intent", self._parse_intent)
         graph.add_node("node_market_research", self._run_market_research)
         graph.add_node("rag_retrieval", self._run_rag_retrieval)
@@ -210,8 +217,19 @@ class AgentOrchestratorGraph:
         graph.add_node("style_adaptation", self._run_style_adaptation)
         graph.add_node("aggregate_results", self._aggregate_results)
 
-        # Set entry point
-        graph.set_entry_point("parse_intent")
+        # Set entry point. The deterministic gate must precede all model-backed
+        # nodes so insufficient requests never incur orchestration work.
+        graph.set_entry_point("input_gate")
+
+        graph.add_conditional_edges(
+            "input_gate",
+            self._after_input_assessment,
+            {
+                "parse_intent": "parse_intent",
+                "finalize_input_assessment": "finalize_input_gate",
+            },
+        )
+        graph.add_edge("finalize_input_gate", END)
 
         # Fan-out from parse_intent to market_research + rag_retrieval (parallel)
         graph.add_conditional_edges(
@@ -234,27 +252,18 @@ class AgentOrchestratorGraph:
             },
         )
 
-        # copy_generation → compliance_review (or aggregate on error)
+        # Review the final platform draft, not an intermediate generic draft.
         graph.add_conditional_edges(
             "copy_generation",
             self._after_copy_generation,
-            {
-                "compliance_review": "compliance_review",
-                "aggregate_results": "aggregate_results",
-            },
-        )
-
-        # compliance_review → style_adaptation
-        graph.add_conditional_edges(
-            "compliance_review",
-            self._after_compliance_review,
             {
                 "style_adaptation": "style_adaptation",
                 "aggregate_results": "aggregate_results",
             },
         )
 
-        graph.add_edge("style_adaptation", "aggregate_results")
+        graph.add_edge("style_adaptation", "compliance_review")
+        graph.add_edge("compliance_review", "aggregate_results")
         graph.add_edge("aggregate_results", END)
 
         return graph.compile()
@@ -282,10 +291,18 @@ class AgentOrchestratorGraph:
         # Ensure defaults
         state.setdefault("errors", [])
         state.setdefault("knowledge_base_id", "")
-        state.setdefault("target_style", "taobao")
+        from app.platform_skills.registry import normalize_platform
+        state["target_style"] = normalize_platform(state.get("target_style", "taobao"))
         state.setdefault("user_request", "")
 
-        callback_token = self._progress_callback.set(progress_callback)
+        assessment = assess_input_at_boundary(state.get("product_info", {}), "graph")
+        observation = GenerationObservation("graph", state["target_style"], assessment["ready"])
+
+        async def observed_callback(agent_name, status, result):
+            await progress_callback(agent_name, status, result)
+            observation.first_progress()
+
+        callback_token = self._progress_callback.set(observed_callback if progress_callback else None)
         cost_scope_id, cost_scope_token = self.cost_tracker.begin_scope()
 
         try:
@@ -293,6 +310,7 @@ class AgentOrchestratorGraph:
             logger.info("AgentOrchestratorGraph: orchestration complete")
             cost_stats = self.cost_tracker.get_stats(cost_scope_id)
             result["cost_stats"] = cost_stats
+            observation.finish(result.get("final_result", {}))
 
             # Notify completion
             if progress_callback:
@@ -319,14 +337,55 @@ class AgentOrchestratorGraph:
                     pass
             # Try to aggregate whatever results we have
             orchestrator = self._get_orchestrator()
-            state["final_result"] = orchestrator.aggregate_results(state)
+            final_result = orchestrator.aggregate_results(state)
+            final_result["input_assessment"] = state.get("input_assessment") or assess_product_input(
+                state.get("product_info", {})
+            )
+            state["final_result"] = final_result
             state["cost_stats"] = self.cost_tracker.get_stats(cost_scope_id)
             return state
         finally:
+            observation.finish()  # Failed/cancelled invocations; a finished run is a no-op.
             self.cost_tracker.end_scope(cost_scope_token)
             self._progress_callback.reset(callback_token)
 
     # ---- Graph node implementations ----
+
+    async def _assess_input(self, state: AgentGraphState) -> AgentGraphState:
+        """Run the deterministic input gate before any model-backed node."""
+        assessment = assess_product_input(state.get("product_info", {}))
+        state["input_assessment"] = assessment
+        await self._notify_progress(
+            state,
+            "input_assessment",
+            {"input_assessment": assessment},
+        )
+        return state
+
+    async def _finalize_input_assessment(self, state: AgentGraphState) -> AgentGraphState:
+        """Produce a stable partial result when the input gate rejects input."""
+        assessment = state.get("input_assessment") or assess_product_input(
+            state.get("product_info", {})
+        )
+        product_info = state.get("product_info", {})
+        state["input_assessment"] = assessment
+        state["final_result"] = {
+            "product_title": product_info.get("title", ""),
+            "overall_status": "needs_input",
+            "input_assessment": assessment,
+            "market_insights": {},
+            "copy": {},
+            "compliance": {},
+            "style_adaptation": {},
+            "pending_confirmations": [],
+            "errors": [],
+            "generation_metadata": {
+                "agents_executed": ["input_assessment"],
+                "has_errors": False,
+                "input_gate": True,
+            },
+        }
+        return state
 
     async def _notify_progress(
         self,
@@ -557,7 +616,11 @@ class AgentOrchestratorGraph:
         logger.info("Graph node: compliance_review")
         try:
             agent = self._get_reviewer()
-            update = await agent.run(dict(state))
+            review_state = dict(state)
+            platform_draft = (state.get("style_previews") or {}).get("draft")
+            if platform_draft:
+                review_state["copy_drafts"] = platform_draft
+            update = await agent.run(review_state)
             state.update(update)
             elapsed = time.monotonic() - t0
             review = state.get("review_result", {})
@@ -615,15 +678,12 @@ class AgentOrchestratorGraph:
             errors: List[str] = state.get("errors", [])
             errors.append(f"style_adaptation: {exc}")
             state["errors"] = errors
-            copy_drafts = state.get("copy_drafts", {})
             state["style_previews"] = {
-                "target_style": state.get("target_style", "taobao"),
-                "style_name": "默认风格",
-                "adapted_title": copy_drafts.get("titles", [""])[0] if copy_drafts.get("titles") else "",
-                "adapted_selling_points": copy_drafts.get("selling_points", []),
-                "adapted_detail": copy_drafts.get("detail_copy", ""),
-                "visual_params": {"color_scheme": "default", "layout": "standard", "font_style": "standard"},
-                "style_notes": f"风格适配暂时不可用（{exc}）",
+                "target_style": state["target_style"],
+                "fallback": True,
+                "error": "平台 Skill 执行失败，请重新生成。",
+                "pending_confirmations": ["平台 Skill 执行失败，请重新生成。"],
+                "previews": {},
             }
         return state
 
@@ -634,6 +694,12 @@ class AgentOrchestratorGraph:
         try:
             orchestrator = self._get_orchestrator()
             final_result = orchestrator.aggregate_results(dict(state))
+            # Keep the deterministic gate result visible on both ready and
+            # needs-input responses; the aggregate agent does not own this
+            # provenance field and may otherwise omit it.
+            final_result["input_assessment"] = state.get("input_assessment") or assess_product_input(
+                state.get("product_info", {})
+            )
             state["final_result"] = final_result
             elapsed = time.monotonic() - t0
             logger.info("aggregate_results completed in %.2fs", elapsed)
@@ -651,6 +717,13 @@ class AgentOrchestratorGraph:
         return state
 
     # ---- Conditional edge functions ----
+
+    def _after_input_assessment(self, state: AgentGraphState) -> str:
+        """Route only ready input into the model-backed orchestration graph."""
+        assessment = state.get("input_assessment") or {}
+        if assessment.get("ready"):
+            return "parse_intent"
+        return "finalize_input_assessment"
 
     def _after_parse_intent(self, state: AgentGraphState):
         """Fan out to market_research and rag_retrieval in parallel.
@@ -683,17 +756,10 @@ class AgentOrchestratorGraph:
         return "copy_generation"
 
     def _after_copy_generation(self, state: AgentGraphState) -> str:
-        """After copy generation: proceed to compliance review."""
+        """After fact preparation: execute the selected platform skill."""
         copy_drafts = state.get("copy_drafts", {})
         if not copy_drafts or not copy_drafts.get("titles"):
             logger.warning("Copy generation produced no titles, but continuing")
-        return "compliance_review"
-
-    def _after_compliance_review(self, state: AgentGraphState) -> str:
-        """After compliance review: proceed to style adaptation."""
-        review = state.get("review_result", {})
-        if review.get("status") == "rejected":
-            logger.warning("Compliance review rejected, but continuing to style adaptation")
         return "style_adaptation"
 
     # ---- Join node ----

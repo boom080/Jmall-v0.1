@@ -1,4 +1,5 @@
 import json
+import re
 import logging
 import time
 from typing import Any, Dict, List, Optional
@@ -338,6 +339,18 @@ class ProviderFactory:
     def _generate_mock_response(self, system_prompt: str, user_content: str) -> str:
         """Generate a structured mock response based on the prompt context."""
         sys_lower = system_prompt.lower()
+
+        # A registered listing Skill has its own contract, independent of the
+        # legacy generic copy/style canned responses. Mock remains explicit.
+        skill_match = re.search(r"(taobao|jd|pinduoduo|suning|xiaohongshu)_listing_v1@", system_prompt)
+        if skill_match:
+            from app.agents.style_adapter import StyleAdapterAgent
+            from app.platform_skills.registry import get_platform_skill
+            skill = get_platform_skill(skill_match.group(1))
+            facts = json.loads(user_content).get("merchant_facts", {})
+            draft = StyleAdapterAgent._merchant_draft(facts, skill)
+            draft.pending_confirmations.append("当前为 Mock 模式，尚未验证真实模型写作效果。")
+            return draft.model_dump_json()
 
         # Orchestrator mock
         if "运营总监" in system_prompt or "orchestrat" in sys_lower:

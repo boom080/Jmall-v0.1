@@ -73,6 +73,7 @@ services:
       JMALL_REDIS_PORT: 6379
       JMALL_AI_BASE_URL: http://agent:18080
       JMALL_UPLOAD_DIR: /app/uploads
+      JMALL_JWT_SECRET: ${JMALL_JWT_SECRET:-jmall-jwt-secret-key-2024-long-enough-for-hs256!!}
     volumes:
       - jmall_upload_data:/app/uploads
     depends_on:
@@ -85,8 +86,8 @@ services:
     build: ./jmall-agent
     container_name: jmall-agent
     restart: unless-stopped
-    ports:
-      - "18080:18080"
+    expose:
+      - "18080"
     environment:
       AI_SERVICE_HOST: 0.0.0.0
       AI_SERVICE_PORT: 18080
@@ -96,9 +97,12 @@ services:
       DEEPSEEK_API_KEY: ${JMALL_DEEPSEEK_API_KEY:-}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
-      QWEN_API_KEY: ${JMALL_QWEN_API_KEY:-}
+      QWEN_API_KEY: ${JMALL_QWEN_API_KEY:-${QWEN_API_KEY:-}}
       QWEN_BASE_URL: ${QWEN_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       TAVILY_API_KEY: ${JMALL_TAVILY_API_KEY:-}
+      IMAGE_SEARCH_PROVIDER: ${IMAGE_SEARCH_PROVIDER:-qwen}
+      PICTURE_BASE: ${picture_base:-${PICTURE_BASE:-qwen-plus-latest}}
+      SERPAPI_API_KEY: ${SERPAPI_API_KEY:-${JMALL_SERPAPI_API_KEY:-}}
       AGENT_STRONG_PROVIDER: ${AGENT_STRONG_PROVIDER:-}
       AGENT_STRONG_MODEL: ${AGENT_STRONG_MODEL:-}
       AGENT_MEDIUM_PROVIDER: ${AGENT_MEDIUM_PROVIDER:-}
@@ -110,6 +114,8 @@ services:
       RAG_EMBEDDING_API_KEY: ${RAG_EMBEDDING_API_KEY:-}
       RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-}
       RAG_EMBEDDING_DIMENSION: ${RAG_EMBEDDING_DIMENSION:-}
+    volumes:
+      - jmall_agent_data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -132,7 +138,7 @@ services:
       - "19090:19090"
     environment:
       JRUNMALL_SECKILL_REDIS_URL: redis://redis:6379
-      JRUNMALL_SECKILL_PORT: 19090
+      JRUNMALL_SECKILL_ADDR: 0.0.0.0:19090
     depends_on:
       redis:
         condition: service_healthy
@@ -167,3 +173,4 @@ volumes:
   jmall_redis_data:
   jmall_grafana_data:
   jmall_upload_data:
+  jmall_agent_data:

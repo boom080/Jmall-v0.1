@@ -45,5 +45,41 @@ public class SchemaMigrationService {
         if (backfilled > 0) {
             log.info("Backfilled subtitles for {} existing products", backfilled);
         }
+
+        Integer aiDraftMetaColumns = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'jmall_product' " +
+                        "AND COLUMN_NAME = 'ai_draft_meta'",
+                Integer.class
+        );
+        if (aiDraftMetaColumns == null || aiDraftMetaColumns == 0) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE jmall_product ADD COLUMN ai_draft_meta JSON DEFAULT NULL " +
+                            "COMMENT 'AI draft input, image source and confirmation record' " +
+                            "AFTER compliance_result"
+            );
+            log.info("Added jmall_product.ai_draft_meta");
+        }
+
+        String statusDefault = jdbcTemplate.queryForObject(
+                "SELECT COLUMN_DEFAULT FROM information_schema.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'jmall_product' " +
+                        "AND COLUMN_NAME = 'status'",
+                String.class
+        );
+        if (!"draft".equals(statusDefault)) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE jmall_product MODIFY COLUMN status VARCHAR(16) " +
+                            "NOT NULL DEFAULT 'draft' COMMENT 'draft | published'"
+            );
+            log.info("Changed jmall_product.status default to draft");
+        }
+        int normalizedStatuses = jdbcTemplate.update(
+                "UPDATE jmall_product SET status = 'draft' " +
+                        "WHERE status NOT IN ('draft', 'published')"
+        );
+        if (normalizedStatuses > 0) {
+            log.info("Normalized {} legacy product statuses to draft", normalizedStatuses);
+        }
     }
 }

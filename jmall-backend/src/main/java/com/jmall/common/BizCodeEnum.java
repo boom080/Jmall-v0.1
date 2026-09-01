@@ -10,6 +10,7 @@ public enum BizCodeEnum {
     AUTH_ERROR(10010, "authentication error"),
     INSUFFICIENT_GOLD(10020, "insufficient gold balance"),
     PRODUCT_NOT_FOUND(10030, "product not found"),
+    PRODUCT_NOT_PUBLISHABLE(10034, "product is not publishable"),
     STORE_NOT_FOUND(10040, "store not found"),
     USER_NOT_FOUND(10050, "user not found"),
     DUPLICATE_USERNAME(10060, "username already exists"),

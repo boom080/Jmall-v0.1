@@ -1,0 +1,14 @@
+{
+  "platform": "pinduoduo", "name": "拼多多", "skill_id": "pinduoduo_listing_v1", "version": "1.0.0",
+  "title_max_length": 40, "title_limit_basis": "Jmall编辑预算，非拼多多全类目硬性上限；本次未核验现行类目标题限制。",
+  "title_style": "先说是什么，再说数量/规格（仅已知）和用途，不默认便宜或正在拼团",
+  "keyword_layout": "商品核心词前置，真实规格紧随，不插入无关引流词",
+  "tone": "直白、简短、口语化，让人快速看懂买到什么",
+  "selling_point_style": "有什么/多大/怎么用，短句说明实际配置，不制造紧迫感",
+  "detail_sections": ["买到什么", "规格看清楚", "怎么用"],
+  "forbidden_expressions": ["虚构全网最低价或百亿补贴", "无依据限时限量抢购", "虚构拼团价、折扣和赠品"],
+  "characteristics": ["商品与配置说清楚", "短句易读", "数量价格不脑补"],
+  "color_scheme": "warm-red", "layout": "promotion-driven", "font_style": "bold-emphasis",
+  "sources": [{"title": "拼多多用户服务协议", "url": "https://www.yangkeduo.com/pdd_user_services_agreement.pdf", "accessed_at": "2026-08-30", "scope": "第4节商品信息及活动条件；短句和规格前置为Jmall编辑设计"}],
+  "example": {"merchant_facts": {"category": "服饰鞋包", "title": "帆布托特包", "description": "米白色，内置拉链袋", "specifications": "宽35厘米，高30厘米", "target_audience": "通勤上班族", "usage_scenarios": "日常通勤"}, "draft": {"titles": ["帆布托特包 米白色 带拉链内袋 通勤用"], "selling_points": ["米白色帆布包", "里面带拉链袋", "宽35厘米，高30厘米"], "detail_copy": "【买到什么】\n米白色帆布托特包，里面带拉链袋。\n【规格看清楚】\n宽35厘米，高30厘米。\n【怎么用】\n通勤上班族日常通勤使用。"}}
+}

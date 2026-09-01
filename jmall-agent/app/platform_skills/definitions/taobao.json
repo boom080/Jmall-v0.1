@@ -1,0 +1,15 @@
+{
+  "platform": "taobao", "name": "淘宝", "skill_id": "taobao_listing_v1", "version": "1.0.0",
+  "title_max_length": 30,
+  "title_limit_basis": "Jmall保守限制30个Unicode字符；官方类目Schema示例为60字节/30汉字，实际发布以目标类目Schema为准。",
+  "title_style": "商品名/品牌（已知才写）+品类+关键规格+用途，删除重复关键词",
+  "keyword_layout": "品类核心词靠前，规格和使用场景自然跟随，不堆砌无关热词",
+  "tone": "清晰、利于搜索和比较，强调已确认的商品差异",
+  "selling_point_style": "每条一个真实特点，接对应场景；不做无依据竞品比较",
+  "detail_sections": ["商品亮点", "规格与细节", "适用场景"],
+  "forbidden_expressions": ["关键词堆砌", "虚构热销排名或用户好评", "无依据功效及折扣"],
+  "characteristics": ["搜索词清晰", "特点分层展示", "场景与规格结合"],
+  "color_scheme": "orange-warm", "layout": "content-rich", "font_style": "clean-modern",
+  "sources": [{"title": "阿里开放平台商品发布Schema示例", "url": "https://open.alitrip.com/docs/api.htm?apiId=53973&source=search", "accessed_at": "2026-08-30", "scope": "标题字段长度示例；文案布局为Jmall编辑设计，不代表全类目发布规则"}],
+  "example": {"merchant_facts": {"category": "服饰鞋包", "title": "帆布托特包", "description": "米白色，内置拉链袋", "specifications": "宽35厘米，高30厘米", "target_audience": "通勤上班族", "usage_scenarios": "日常通勤"}, "draft": {"titles": ["米白色帆布托特包 内置拉链袋 通勤用"], "selling_points": ["米白色帆布包身", "内置拉链袋"], "detail_copy": "【商品亮点】\n米白色帆布托特包，内置拉链袋。\n【规格与细节】\n宽35厘米，高30厘米。\n【适用场景】\n面向通勤上班族，适用于日常通勤。"}}
+}

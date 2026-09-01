@@ -2,7 +2,7 @@
 
 Endpoints:
 - POST /api/agent/orchestrate  - Full multi-agent orchestration
-- POST /api/agent/product/copy  - Single-agent copy generation
+- POST /api/agent/product/copy  - Fact draft plus selected platform skill
 - POST /api/agent/product/review - Single-agent compliance review
 - POST /api/agent/product/insights - Single-agent market research
 - GET  /api/styles             - List available styles
@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.agents.copywriter import CopywriterAgent, SUPPORTED_STYLES
 from app.agents.graph import AgentGraphState, AgentOrchestratorGraph
+from app.agents.input_gate import assess_product_input
 from app.agents.market_research import MarketResearchAgent
 from app.agents.orchestrator import OrchestratorAgent
 from app.agents.reviewer import ReviewerAgent
@@ -28,11 +29,14 @@ from app.agents.style_adapter import StyleAdapterAgent, STYLE_PROFILES, StyleAda
 from app.api.dependencies import get_job_store, get_provider_factory, get_retrieval_service
 from app.services.job_store import JobStore
 from app.core.config import Settings, get_settings
+from app.core.metrics import GenerationObservation
+from app.services.input_assessment_service import assess_input_at_boundary
 from app.llm.router import LLMRouter
 from app.models.agent_models import (
     CopyOnlyRequest,
     CopyOnlyResponse,
     CostStatsResponse,
+    InputAssessmentResponse,
     InsightsRequest,
     InsightsResponse,
     OrchestrateRequest,
@@ -78,6 +82,12 @@ def get_orchestrator_graph(
 
 
 # ---- Agent orchestration endpoints ----
+
+@router.post("/input-assessment", response_model=InputAssessmentResponse)
+async def input_assessment(request: OrchestrateRequest) -> InputAssessmentResponse:
+    """Free deterministic preflight for the model-backed orchestration graph."""
+    assessment = assess_input_at_boundary(request.product_info.model_dump(), "preflight")
+    return InputAssessmentResponse(input_assessment=assessment)
 
 @router.post("/orchestrate", response_model=OrchestrateResponse)
 async def orchestrate(
@@ -127,6 +137,7 @@ async def orchestrate(
             compliance=final.get("compliance", {}),
             style_adaptation=final.get("style_adaptation", {}),
             pending_confirmations=final.get("pending_confirmations", []),
+            input_assessment=final.get("input_assessment", {}),
             errors=errors,
             generation_metadata=final.get("generation_metadata", {}),
             cost_stats=cost_stats,
@@ -270,11 +281,26 @@ async def product_copy_only(
     provider_factory: ProviderFactory = Depends(get_provider_factory),
     retrieval_service: RetrievalService = Depends(get_retrieval_service),
 ) -> CopyOnlyResponse:
-    """Single-agent copy generation endpoint (simpler, faster).
-
-    Uses only the CopywriterAgent to generate product copy without
-    the full orchestration pipeline.
+    """Fact preparation plus one platform skill, without research or review.
     """
+    product_info = {
+        "title": request.product_info.title,
+        "category": request.product_info.category,
+        "description": request.product_info.description or "",
+        "price": request.product_info.price or "",
+        "specifications": request.product_info.specifications or "",
+        "target_audience": request.product_info.target_audience or "",
+        "usage_scenarios": request.product_info.usage_scenarios or "",
+    }
+    assessment = assess_input_at_boundary(product_info, "copy")
+    observation = GenerationObservation("copy", request.target_style, assessment["ready"])
+    if not assessment["ready"]:
+        return CopyOnlyResponse(
+            success=False,
+            message="商品信息不足，暂不生成文案",
+            input_assessment=assessment,
+        )
+
     try:
         llm_router = LLMRouter(settings)
         agent = CopywriterAgent(
@@ -285,36 +311,41 @@ async def product_copy_only(
         )
 
         state = {
-            "product_info": {
-                "title": request.product_info.title,
-                "category": request.product_info.category,
-                "description": request.product_info.description or "",
-                "price": request.product_info.price or "",
-                "specifications": request.product_info.specifications or "",
-                "target_audience": request.product_info.target_audience or "",
-                "usage_scenarios": request.product_info.usage_scenarios or "",
-            },
+            "product_info": product_info,
             "target_style": request.target_style,
             "knowledge_base_id": request.knowledge_base_id or "",
             "market_research": {},
         }
 
         update = await agent.run(state)
-        copy_result = update.get("copy_drafts", {})
+        state.update(update)
+        style_update = await StyleAdapterAgent(
+            settings=settings, provider_factory=provider_factory, llm_router=llm_router,
+        ).run(state)
+        style_result = style_update["style_previews"]
+        copy_result = style_result["draft"]
+        observation.finish({"overall_status": "success", "style_adaptation": style_result})
 
         return CopyOnlyResponse(
             success=True,
-            message="文案生成成功",
+            message="已生成平台草稿，请核对后发布",
             titles=copy_result.get("titles", []),
             selling_points=copy_result.get("selling_points", []),
             detail_copy=copy_result.get("detail_copy", ""),
             short_video_script=copy_result.get("short_video_script", ""),
             style=copy_result.get("style", request.target_style),
             pending_confirmations=copy_result.get("pending_confirmations", []),
+            input_assessment=assessment,
+            platform_skill_id=style_result["platform_skill_id"],
+            platform_skill_version=style_result["platform_skill_version"],
+            draft=copy_result,
+            fallback=style_result["fallback"],
         )
     except Exception as exc:
         logger.exception("Product copy endpoint failed")
         raise HTTPException(status_code=500, detail=f"文案生成失败: {exc}")
+    finally:
+        observation.finish()
 
 
 @router.post("/product/review", response_model=ReviewOnlyResponse)
@@ -443,6 +474,8 @@ async def list_styles() -> StylesListResponse:
             description=info.get("description", ""),
             title_style=info.get("title_style", ""),
             color_scheme=info.get("color_scheme", ""),
+            platform_skill_id=info["platform_skill_id"],
+            platform_skill_version=info["platform_skill_version"],
         )
         for style_id, info in styles_data.items()
     ]
@@ -460,6 +493,10 @@ async def preview_style(
     Adapts the product information and optional existing copy to
     match the target platform's style conventions.
     """
+    assessment = assess_input_at_boundary(request.product_info.model_dump(), "preview")
+    observation = GenerationObservation("preview", request.target_style, assessment["ready"])
+    if not assessment["ready"]:
+        raise HTTPException(status_code=422, detail={"input_assessment": assessment})
     try:
         llm_router = LLMRouter(settings)
         agent = StyleAdapterAgent(
@@ -474,7 +511,7 @@ async def preview_style(
             title = request.product_info.title
             copy_drafts = {
                 "titles": [title],
-                "selling_points": ["品质优选"],
+                "selling_points": [],
                 "detail_copy": request.product_info.description or "",
             }
 
@@ -495,7 +532,8 @@ async def preview_style(
         update = await agent.run(state)
         style_result = update.get("style_previews", {})
 
-        profile = STYLE_PROFILES.get(request.target_style, STYLE_PROFILES["taobao"])
+        profile = STYLE_PROFILES[request.target_style]
+        observation.finish({"overall_status": "success", "style_adaptation": style_result})
 
         return StylePreviewResponse(
             success=True,
@@ -507,10 +545,18 @@ async def preview_style(
             adapted_detail=style_result.get("adapted_detail", ""),
             visual_params=style_result.get("visual_params", {}),
             style_notes=style_result.get("style_notes", ""),
+            platform_skill_id=style_result["platform_skill_id"],
+            platform_skill_version=style_result["platform_skill_version"],
+            draft=style_result["draft"],
+            pending_confirmations=style_result["pending_confirmations"],
+            fallback=style_result["fallback"],
+            guarded=style_result["guarded"],
         )
     except Exception as exc:
         logger.exception("Style preview endpoint failed")
         raise HTTPException(status_code=500, detail=f"风格预览失败: {exc}")
+    finally:
+        observation.finish()
 
 
 # ---- Search trends endpoint ----

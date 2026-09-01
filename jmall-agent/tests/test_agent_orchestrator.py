@@ -3,6 +3,7 @@
 Covers: plan generation, aggregate_results, error handling.
 """
 
+import asyncio
 import json
 
 from app.agents.orchestrator import OrchestratorAgent
@@ -27,6 +28,33 @@ def test_orchestrator_generates_plan(base_state, settings, provider_factory, llm
         step = plan_items[0]
         assert "step" in step, "Each step should have a 'step' name"
         assert "description" in step, "Each step should have a 'description'"
+
+
+def test_orchestrator_prompt_keeps_all_merchant_input(
+    base_state, settings, provider_factory, llm_router, cost_tracker, monkeypatch
+):
+    """Structured form fields must reach planning instead of being discarded."""
+    agent = OrchestratorAgent(settings, provider_factory, llm_router, cost_tracker)
+    state = dict(base_state)
+    state["product_info"] = {
+        **state["product_info"],
+        "specifications": "304不锈钢；500ml；保温12小时",
+        "target_audience": "上班族和学生",
+        "usage_scenarios": "办公室、通勤、旅行",
+    }
+    captured = {}
+
+    def capture_prompt(prompt, **kwargs):
+        captured["prompt"] = prompt
+        return json.dumps({"plan": []}, ensure_ascii=False)
+
+    monkeypatch.setattr(agent, "_call_llm", capture_prompt)
+    asyncio.run(agent.run(state))
+
+    prompt = captured["prompt"]
+    assert "304不锈钢；500ml；保温12小时" in prompt
+    assert "上班族和学生" in prompt
+    assert "办公室、通勤、旅行" in prompt
 
 
 def test_orchestrator_plan_includes_all_agents(base_state, settings, provider_factory, llm_router, cost_tracker):

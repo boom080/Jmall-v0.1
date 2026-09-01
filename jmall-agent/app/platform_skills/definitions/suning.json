@@ -1,0 +1,14 @@
+{
+  "platform": "suning", "name": "苏宁", "skill_id": "suning_listing_v1", "version": "1.0.0",
+  "title_max_length": 60, "title_limit_basis": "Jmall编辑预算，非苏宁全类目硬性上限；未采用直播标题或已失效规则。",
+  "title_style": "商品名/品牌+型号（已知才写）+关键规格+真实用途，不默认家电品类",
+  "keyword_layout": "型号、尺寸、容量等决策参数优先，非家电商品使用对应品类词",
+  "tone": "选购顾问式说明，解释已知配置和使用条件，不代替商家承诺安装或售后",
+  "selling_point_style": "配置事实+适用条件，服务信息仅在商家明确提供时使用",
+  "detail_sections": ["选购要点", "配置与尺寸", "使用条件"],
+  "forbidden_expressions": ["默认免费安装或送装一体", "无依据以旧换新补贴", "虚构延保和全国联保"],
+  "characteristics": ["选购参数清晰", "使用条件说明", "服务按实际提供"],
+  "color_scheme": "blue-trust", "layout": "service-emphasis", "font_style": "professional-clean",
+  "sources": [{"title": "苏宁易购官方商品入口", "url": "https://www.suning.com/", "accessed_at": "2026-08-30", "scope": "观察品牌型号与配置的标题组织，不推定单品享有页面活动。选购语气为Jmall编辑设计"}, {"title": "苏宁规则中心", "url": "https://rule.suning.com/", "accessed_at": "2026-08-30", "scope": "现行规则入口，非已核验的全类目标题限制"}],
+  "example": {"merchant_facts": {"category": "服饰鞋包", "title": "帆布托特包", "description": "米白色，内置拉链袋", "specifications": "宽35厘米，高30厘米", "target_audience": "通勤上班族", "usage_scenarios": "日常通勤"}, "draft": {"titles": ["米白色帆布托特包 35×30厘米 通勤拉链内袋款"], "selling_points": ["选购尺寸：宽35厘米，高30厘米", "包内配置：拉链袋"], "detail_copy": "【选购要点】\n面向通勤上班族的米白色帆布托特包。\n【配置与尺寸】\n宽35厘米，高30厘米，内置拉链袋。\n【使用条件】\n用途为日常通勤。"}}
+}

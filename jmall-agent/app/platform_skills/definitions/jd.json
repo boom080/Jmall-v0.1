@@ -1,0 +1,14 @@
+{
+  "platform": "jd", "name": "京东", "skill_id": "jd_listing_v1", "version": "1.0.0",
+  "title_max_length": 60, "title_limit_basis": "Jmall编辑预算，非京东全类目硬性上限；本次未核验现行类目标题限制。",
+  "title_style": "品牌（已知才写）+商品名称+型号（已知才写）+关键规格，保留型号原文",
+  "keyword_layout": "商品名与型号前置，参数紧随，避免情绪词和重复修饰",
+  "tone": "客观、参数化、便于逐项核对，不借平台名暗示自营或授权",
+  "selling_point_style": "参数/配置：已确认事实，一条一个维度，避免空泛品质保证",
+  "detail_sections": ["商品信息", "规格参数", "适用范围"],
+  "forbidden_expressions": ["未经确认的京东自营", "未经确认的次日达或正品保障", "虚构认证及权威背书"],
+  "characteristics": ["型号和参数前置", "逐项核对", "客观说明"],
+  "color_scheme": "red-professional", "layout": "spec-driven", "font_style": "clean-standard",
+  "sources": [{"title": "京东全球购平台规则", "url": "https://global.m.jd.com/rules.html", "accessed_at": "2026-08-30", "scope": "历史跨境规则中的商品如实描述原则；非当前全站标题规范。参数型表达为Jmall编辑设计"}],
+  "example": {"merchant_facts": {"category": "服饰鞋包", "title": "帆布托特包", "description": "米白色，内置拉链袋", "specifications": "宽35厘米，高30厘米", "target_audience": "通勤上班族", "usage_scenarios": "日常通勤"}, "draft": {"titles": ["帆布托特包 米白色 35×30厘米 内置拉链袋"], "selling_points": ["尺寸：宽35厘米，高30厘米", "配置：内置拉链袋"], "detail_copy": "【商品信息】\n品类：帆布托特包。颜色：米白色。\n【规格参数】\n宽35厘米，高30厘米；内置拉链袋。\n【适用范围】\n面向通勤上班族，用于日常通勤。"}}
+}

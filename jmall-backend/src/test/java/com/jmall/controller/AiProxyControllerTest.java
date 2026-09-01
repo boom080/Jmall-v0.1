@@ -107,6 +107,68 @@ class AiProxyControllerTest {
         verify(aiProxyService).orchestrate(anyMap());
     }
 
+    // ---- POST /api/ai/input-assessment (free preflight) ----
+
+    @Test
+    void inputAssessment_returnsJsonAndDelegatesRequest() throws Exception {
+        when(aiProxyService.assessInput(anyMap()))
+                .thenReturn(R.ok(Map.of(
+                        "input_assessment", Map.of(
+                                "status", "needs_input",
+                                "ready", false,
+                                "score", 35))));
+
+        mockMvc.perform(post("/api/ai/input-assessment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "productInfo": {
+                                    "title": "可拆洗记忆棉枕",
+                                    "category": "家居用品",
+                                    "description": "给经常出差的人使用"
+                                },
+                                "targetStyle": "taobao",
+                                "knowledgeBaseId": "kb-1",
+                                "productDraftId": 42
+                            }
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(10000))
+                .andExpect(jsonPath("$.data.input_assessment.ready").value(false));
+
+        verify(aiProxyService).assessInput(anyMap());
+    }
+
+    @Test
+    void imageCandidates_returnsJsonAndDelegatesRequest() throws Exception {
+        when(aiProxyService.findImageCandidates(anyMap()))
+                .thenReturn(R.ok(Map.of(
+                        "status", "ready",
+                        "candidates", java.util.List.of(Map.of(
+                                "candidate_id", "img-1",
+                                "original_url", "https://images.example.com/1.jpg")))));
+
+        mockMvc.perform(post("/api/ai/images/candidates")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "productInfo": {
+                                    "title": "轻量保温杯",
+                                    "category": "家居日用",
+                                    "specifications": "304不锈钢；500ml",
+                                    "targetAudience": "学生和上班族"
+                                }
+                            }
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10000))
+                .andExpect(jsonPath("$.data.status").value("ready"))
+                .andExpect(jsonPath("$.data.candidates[0].candidate_id").value("img-1"));
+
+        verify(aiProxyService).findImageCandidates(anyMap());
+    }
+
     // ---- POST /api/ai/orchestrate/stream (SSE) ----
 
     @Test

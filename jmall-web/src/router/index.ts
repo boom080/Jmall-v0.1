@@ -24,7 +24,9 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         { path: '', name: 'merchant-dashboard', component: () => import('@/views/merchant/Dashboard.vue') },
-        { path: 'products', name: 'merchant-products', component: () => import('@/views/merchant/ProductEditor.vue') },
+        { path: 'products', name: 'merchant-products', component: () => import('@/views/merchant/MyProducts.vue') },
+        { path: 'products/new', name: 'merchant-product-new', component: () => import('@/views/merchant/ProductEditor.vue') },
+        { path: 'products/:id/published', name: 'merchant-product-published', component: () => import('@/views/merchant/PublishSuccess.vue') },
         { path: 'products/:id', name: 'merchant-product-edit', component: () => import('@/views/merchant/ProductEditor.vue') },
         { path: 'store', name: 'merchant-store', component: () => import('@/views/merchant/StoreManager.vue') },
         { path: 'knowledge', name: 'merchant-knowledge', component: () => import('@/views/merchant/KnowledgeBase.vue') },

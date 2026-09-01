@@ -62,3 +62,17 @@ def test_job_persists_required_fields_and_active_user_index(settings):
     assert store.consume_job(job_id, user_id=8) is False
     assert store.consume_job(job_id, user_id=7) is True
     assert store.get_active_job(7) is None
+
+
+def test_platform_skill_contract_survives_job_recovery(settings):
+    store = make_store(settings)
+    job_id = store.create_job(user_id=7, product_info={"title": "托特包"}, target_style="jd")
+    style = {"target_style": "jd", "platform_skill_id": "jd_listing_v1",
+             "platform_skill_version": "1.0.0", "previews": {"jd": {"adapted_title": "托特包"}}}
+    final = {"style_adaptation": style, "generation_metadata": {
+        "platform_skill_id": "jd_listing_v1", "platform_skill_version": "1.0.0"}}
+    store.update_progress(job_id, "style_adaptation", "completed", {"style_previews": style})
+    store.update_progress(job_id, "orchestration_complete", "completed", {"final_result": final})
+    recovered = store.get_job(job_id, user_id=7)
+    assert recovered["stylePreviews"] == style
+    assert recovered["result"] == final

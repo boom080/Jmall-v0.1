@@ -1,5 +1,5 @@
 import http from './http'
-import type { Product, PlatformStyle, CartItem, Order } from '@/types'
+import type { Product, PlatformStyle, CartItem, Order, PublishCheckResult } from '@/types'
 
 export const productApi = {
   list(params: { category?: string; style?: PlatformStyle; status?: string; keyword?: string; page?: number; size?: number } = {}) {
@@ -13,6 +13,15 @@ export const productApi = {
   },
   update(id: number, product: Partial<Product>): Promise<Product> {
     return http.put(`/products/${id}`, product)
+  },
+  publishCheck(id: number): Promise<PublishCheckResult> {
+    return http.post(`/products/${id}/publish-check`)
+  },
+  publish(id: number): Promise<Product> {
+    return http.post(`/products/${id}/publish`)
+  },
+  unpublish(id: number): Promise<Product> {
+    return http.post(`/products/${id}/unpublish`)
   },
   getMyProducts(page = 1, size = 20): Promise<{ records: Product[]; total: number; current: number; size: number }> {
     return http.get('/products/mine', { params: { page, size } })

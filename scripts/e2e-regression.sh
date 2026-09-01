@@ -1,6 +1,6 @@
 #!/bin/bash
 # 端到端购买流程回归测试
-# 用法: bash docs/e2e-regression.sh
+# 用法: bash scripts/e2e-regression.sh
 # 前置条件: docker compose up -d (所有容器运行中)
 
 BASE="http://localhost:10301"

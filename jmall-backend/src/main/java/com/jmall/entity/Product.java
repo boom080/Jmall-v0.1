@@ -32,6 +32,7 @@ public class Product {
     private String aiStylePreviews;
     private String marketInsights;
     private String complianceResult;
+    private String aiDraftMeta;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

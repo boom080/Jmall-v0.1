@@ -127,6 +127,33 @@ class Settings(BaseSettings):
     agent_cheap_model: str = Field("", env="AGENT_CHEAP_MODEL")
     agent_cost_budget_daily: float = Field(5.0, env="AGENT_COST_BUDGET_DAILY")
     cost_tracking_enabled: bool = Field(True, env="COST_TRACKING_ENABLED")
+    # --- Image Scout settings ---
+    image_search_provider: str = Field("qwen", env="IMAGE_SEARCH_PROVIDER")
+    image_search_model: str = Field(
+        "qwen-plus-latest",
+        validation_alias=AliasChoices(
+            "picture_base",
+            "PICTURE_BASE",
+            "IMAGE_SEARCH_MODEL",
+            "image_search_model",
+        ),
+    )
+    serpapi_api_key: str = Field(
+        "",
+        validation_alias=AliasChoices("SERPAPI_API_KEY", "serpapi_api_key"),
+    )
+    serpapi_base_url: str = Field(
+        "https://serpapi.com/search.json",
+        validation_alias=AliasChoices("SERPAPI_BASE_URL", "serpapi_base_url"),
+    )
+    image_search_timeout_seconds: float = Field(
+        20.0,
+        validation_alias=AliasChoices(
+            "IMAGE_SEARCH_TIMEOUT_SECONDS", "image_search_timeout_seconds"
+        ),
+        gt=0,
+        le=30,
+    )
 
     def resolved_embedding_dimension(self) -> int:
         raw = (self.rag_embedding_dimension or "").strip()

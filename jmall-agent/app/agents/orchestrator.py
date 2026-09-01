@@ -5,6 +5,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from app.agents.base import BaseAgent
+from app.platform_skills.registry import get_platform_skill
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ class OrchestratorAgent(BaseAgent):
     """Main orchestrator that decomposes user tasks and coordinates sub-agents.
 
     Input: User request with product info and target style.
-    Decomposes into: market_research -> copy_generation -> compliance_review -> style_adaptation.
+    Decomposes into: market_research -> copy_generation -> style_adaptation -> compliance_review.
     Runs sub-agents in sequence or parallel as appropriate.
     Aggregates results.
 
@@ -35,6 +36,7 @@ class OrchestratorAgent(BaseAgent):
         "2. 确定任务执行顺序和依赖关系\n"
         "3. 汇总各助手的结果，形成完整的交付物\n"
         "4. 在出现问题时做出决策（跳过、重试、降级）\n\n"
+        "固定后半程顺序：copy_generation -> style_adaptation -> compliance_review，审查最终平台稿后不再改写。\n"
         "输出要求：\n"
         "请只输出 JSON，不要输出 Markdown。JSON 格式：\n"
         "{\n"
@@ -64,11 +66,16 @@ class OrchestratorAgent(BaseAgent):
         user_request = state.get("user_request", "")
         product_info = state.get("product_info", {})
         target_style = state.get("target_style", "taobao")
+        skill = get_platform_skill(target_style)
+        target_style = skill.platform
         knowledge_base_id = state.get("knowledge_base_id", "")
 
         title = product_info.get("title", "")
         category = product_info.get("category", "未分类")
         description = product_info.get("description", "")
+        specifications = product_info.get("specifications", "")
+        target_audience = product_info.get("target_audience", "")
+        usage_scenarios = product_info.get("usage_scenarios", "")
 
         logger.info(
             "OrchestratorAgent: planning for '%s' style=%s kb=%s",
@@ -81,7 +88,11 @@ class OrchestratorAgent(BaseAgent):
             f"  标题：{title}\n"
             f"  分类：{category}\n"
             f"  描述：{description or '无'}\n"
+            f"  规格/事实：{specifications or '未单独填写，以商品描述为准'}\n"
+            f"  目标人群：{target_audience or '未单独填写，以商品描述为准'}\n"
+            f"  使用场景：{usage_scenarios or '未单独填写，以商品描述为准'}\n"
             f"  目标平台：{target_style}\n"
+            f"  唯一平台Skill：{skill.skill_id}@{skill.version}，禁止调用其他平台Skill\n"
             f"  知识库：{'已配置' if knowledge_base_id else '未配置'}\n\n"
             "请分析以上需求，拆解为子任务并输出执行计划 JSON。"
         )
@@ -95,10 +106,9 @@ class OrchestratorAgent(BaseAgent):
             fallback_error = str(exc)
             parsed = {}
 
-        # Build default plan if parsing fails
-        plan = parsed.get("plan", [])
-        if not plan or not isinstance(plan, list):
-            plan = self._build_default_plan(knowledge_base_id)
+        # The graph owns execution order; never display a contradictory model
+        # plan or an invented platform task to the merchant.
+        plan = self._build_default_plan(knowledge_base_id)
 
         reasoning = parsed.get("reasoning", "自动生成的标准执行流程")
         expected_output = parsed.get("expected_output", "完整的电商文案交付物")
@@ -108,6 +118,8 @@ class OrchestratorAgent(BaseAgent):
             "reasoning": reasoning,
             "expected_output": expected_output,
             "target_style": target_style,
+            "platform_skill_id": skill.skill_id,
+            "platform_skill_version": skill.version,
             "knowledge_base_available": bool(knowledge_base_id),
             "fallback": bool(fallback_error),
             "error": fallback_error,
@@ -134,14 +146,14 @@ class OrchestratorAgent(BaseAgent):
                 "depends_on": ["market_research"],
             },
             {
-                "step": "compliance_review",
-                "description": "审查生成文案的合规性和质量",
+                "step": "style_adaptation",
+                "description": "执行所选平台专用Skill，生成唯一主稿",
                 "depends_on": ["copy_generation"],
             },
             {
-                "step": "style_adaptation",
-                "description": "将文案适配到目标平台的风格",
-                "depends_on": ["copy_generation"],
+                "step": "compliance_review",
+                "description": "审查最终平台主稿的合规性和质量",
+                "depends_on": ["style_adaptation"],
             },
         ]
         if not knowledge_base_id:
@@ -185,6 +197,12 @@ class OrchestratorAgent(BaseAgent):
                 style_previews.get("adapted_detail")
                 or copy_drafts.get("detail_copy", "")
             )
+            if isinstance(style_previews.get("draft"), dict):
+                selected_copy = dict(style_previews["draft"])
+        pending = list(dict.fromkeys([
+            *copy_drafts.get("pending_confirmations", []),
+            *style_previews.get("pending_confirmations", []),
+        ]))
         # Determine overall status
         review_status = review_result.get("status", "unknown")
         if review_status == "rejected":
@@ -193,6 +211,8 @@ class OrchestratorAgent(BaseAgent):
             overall_status = "ready_with_warnings"
         elif errors:
             overall_status = "partial_success"
+        elif pending:
+            overall_status = "ready_with_warnings"
         else:
             overall_status = "success"
 
@@ -214,15 +234,15 @@ class OrchestratorAgent(BaseAgent):
                 "titles": selected_copy.get("titles", []),
                 "selling_points": selected_copy.get("selling_points", []),
                 "detail_copy": selected_copy.get("detail_copy", ""),
-                "short_video_script": copy_drafts.get("short_video_script", ""),
-                "subtitle": copy_drafts.get("subtitle", ""),
-                "price_suggestion": copy_drafts.get("price_suggestion"),
-                "specifications": copy_drafts.get("specifications", []),
-                "target_audience": copy_drafts.get("target_audience", ""),
-                "usage_scenarios": copy_drafts.get("usage_scenarios", []),
-                "seo_keywords": copy_drafts.get("seo_keywords", []),
-                "promotion_copy": copy_drafts.get("promotion_copy", ""),
-                "style": copy_drafts.get("style", ""),
+                "short_video_script": selected_copy.get("short_video_script", ""),
+                "subtitle": selected_copy.get("subtitle", ""),
+                "price_suggestion": selected_copy.get("price_suggestion"),
+                "specifications": selected_copy.get("specifications", []),
+                "target_audience": selected_copy.get("target_audience", ""),
+                "usage_scenarios": selected_copy.get("usage_scenarios", []),
+                "seo_keywords": selected_copy.get("seo_keywords", []),
+                "promotion_copy": selected_copy.get("promotion_copy", ""),
+                "style": style_previews.get("target_style", state.get("target_style", "")),
             },
             "compliance": {
                 "status": review_result.get("status", "unknown"),
@@ -231,18 +251,12 @@ class OrchestratorAgent(BaseAgent):
                 "summary": review_result.get("summary", ""),
                 "checklist": review_result.get("checklist", {}),
             },
-            "style_adaptation": {
-                "target_style": style_previews.get("target_style", ""),
-                "adapted_title": style_previews.get("adapted_title", ""),
-                "adapted_selling_points": style_previews.get("adapted_selling_points", []),
-                "adapted_detail": style_previews.get("adapted_detail", ""),
-                "visual_params": style_previews.get("visual_params", {}),
-                "style_notes": style_previews.get("style_notes", ""),
-                "previews": style_previews.get("previews", {}),
-            },
-            "pending_confirmations": copy_drafts.get("pending_confirmations", []),
+            "style_adaptation": dict(style_previews),
+            "pending_confirmations": pending,
             "errors": errors,
             "generation_metadata": {
+                "platform_skill_id": style_previews.get("platform_skill_id", ""),
+                "platform_skill_version": style_previews.get("platform_skill_version", ""),
                 "agents_executed": [
                     name for name in ["market_research", "copy_drafts", "review_result", "style_previews"]
                     if state.get(name)

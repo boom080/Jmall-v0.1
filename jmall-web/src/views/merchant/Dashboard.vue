@@ -61,10 +61,10 @@
         <el-card shadow="never">
           <template #header><h3>🤖 AI 功能概览</h3></template>
           <el-steps direction="vertical">
-            <el-step title="📝 文案生成" description="支持5大平台风格文案生成" />
+            <el-step title="📝 文案生成" description="五个平台独立 Skill，每次生成一个平台主稿" />
             <el-step title="📈 市场调研" description="实时搜索行业趋势和热搜词" />
             <el-step title="⚖️ 合规审查" description="自动检测价格异常和违规内容" />
-            <el-step title="🎨 风格预览" description="一键预览不同平台商品页效果" />
+            <el-step title="🎨 平台预览" description="预览所选平台主稿，保存 Skill 版本便于追溯" />
           </el-steps>
         </el-card>
       </el-col>

@@ -57,6 +57,15 @@ def test_metrics_contains_histogram():
     assert "le=" in body, "Should have histogram bucket definitions"
 
 
+def test_metrics_declares_image_scout_observability():
+    response = client.get("/metrics")
+    body = response.text
+
+    assert "image_search_requests_total" in body
+    assert "image_search_duration_seconds" in body
+    assert "image_search_candidates_total" in body
+
+
 def test_metrics_format_is_valid_prometheus():
     """Each non-comment line follows Prometheus exposition format."""
     response = client.get("/metrics")

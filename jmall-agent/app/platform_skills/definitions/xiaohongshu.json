@@ -1,0 +1,14 @@
+{
+  "platform": "xiaohongshu", "name": "小红书", "skill_id": "xiaohongshu_listing_v1", "version": "1.0.0",
+  "title_max_length": 20, "title_limit_basis": "Jmall短标题编辑预算；未将未经核验的笔记长度传闻当作官方规则。",
+  "title_style": "真实场景+商品特点，短而自然，最多一个语气符号，不编造使用经历",
+  "keyword_layout": "标题只保留商品词与一个场景词，正文自然补充特点，不堆热门标签",
+  "tone": "以商家身份提供有用的生活场景介绍，轻松但不装成素人测评",
+  "selling_point_style": "场景关联的实际特点，可少量emoji但不以感叹号或情绪代替事实",
+  "detail_sections": ["场景灵感", "商品细节", "适合的用途"],
+  "forbidden_expressions": ["伪造亲测、回购或亲友评价", "假扮普通用户的种草", "夸张标题党或保证效果", "引导站外交易"],
+  "characteristics": ["场景切入", "商家身份真实表达", "不给用户编故事"],
+  "color_scheme": "pink-warm", "layout": "lifestyle-driven", "font_style": "casual-elegant",
+  "sources": [{"title": "小红书社区公约2.0（蒲公英官方帮助中心）", "url": "https://pgy.xiaohongshu.com/help/detail?id=1eda0a065dd894063c2e029a49e8f6a1&userType=4", "accessed_at": "2026-08-30", "scope": "2026-07-31发布，真实分享、商业身份透明、避免标题党；生活场景结构为Jmall编辑设计"}],
+  "example": {"merchant_facts": {"category": "服饰鞋包", "title": "帆布托特包", "description": "米白色，内置拉链袋", "specifications": "宽35厘米，高30厘米", "target_audience": "通勤上班族", "usage_scenarios": "日常通勤"}, "draft": {"titles": ["日常通勤的米白色帆布托特包"], "selling_points": ["米白色包身，内置拉链袋", "宽35厘米，高30厘米"], "detail_copy": "【场景灵感】\n日常通勤，可以看看这款米白色帆布托特包。\n【商品细节】\n内置拉链袋，宽35厘米，高30厘米。\n【适合的用途】\n面向通勤上班族的日常通勤用品。"}}
+}

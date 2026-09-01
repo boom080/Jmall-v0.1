@@ -24,6 +24,22 @@ public class AiProxyController {
         return aiProxyService.orchestrate(request);
     }
 
+    /**
+     * Run the free input sufficiency check before starting the paid agent flow.
+     */
+    @PostMapping("/input-assessment")
+    public R inputAssessment(@RequestBody Map<String, Object> request) {
+        return aiProxyService.assessInput(request);
+    }
+
+    /**
+     * Find source-backed image candidates after the same free input gate passes.
+     */
+    @PostMapping("/images/candidates")
+    public R imageCandidates(@RequestBody Map<String, Object> request) {
+        return aiProxyService.findImageCandidates(request);
+    }
+
     @PostMapping(value = "/orchestrate/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter orchestrateStream(@RequestBody Map<String, Object> request) {
         return aiProxyService.orchestrateStream(request);

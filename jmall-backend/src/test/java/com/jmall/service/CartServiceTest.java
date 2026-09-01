@@ -57,4 +57,18 @@ class CartServiceTest {
         assertEquals("不能购买自己店铺的商品", result.getMsg());
         verify(cartItemRepository, never()).insert(any(CartItem.class));
     }
+
+    @Test
+    void addRejectsDraftProduct() {
+        Product product = new Product();
+        product.setId(12L);
+        product.setStoreId(3L);
+        product.setStatus("draft");
+        when(productRepository.selectById(12L)).thenReturn(product);
+
+        R result = cartService.add(12L, 1);
+
+        assertEquals(10031, result.getCode());
+        verify(cartItemRepository, never()).insert(any(CartItem.class));
+    }
 }

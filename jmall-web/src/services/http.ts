@@ -23,7 +23,10 @@ http.interceptors.response.use(
       if (data.code === 10000 || data.code === 0 || data.code === 200) {
         return data.data
       }
-      return Promise.reject(new Error(data.msg || '请求失败'))
+      const requestError = new Error(data.msg || '请求失败') as Error & { data?: unknown; code?: number }
+      requestError.data = data.data
+      requestError.code = data.code
+      return Promise.reject(requestError)
     }
     return data
   },

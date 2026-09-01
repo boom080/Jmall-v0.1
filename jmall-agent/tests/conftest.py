@@ -48,6 +48,8 @@ def settings(tmp_path: Path) -> Settings:
         agent_cheap_provider="mock",
         tavily_api_key="",
         qwen_api_key="",
+        image_search_provider="disabled",
+        serpapi_api_key="",
         rag_embedding_provider="mock",
         rag_embedding_api_key="",
     )
@@ -109,6 +111,8 @@ def base_state() -> AgentGraphState:
             "category": "厨房电器",
             "description": "低噪音设计，一键清洗，多功能料理",
             "price": "29900",  # cents: ¥299.00
+            "target_audience": "家庭用户和上班族",
+            "usage_scenarios": "家庭厨房、日常料理",
         },
         "target_style": "taobao",
         "knowledge_base_id": "",

@@ -8,12 +8,14 @@ import com.jmall.common.UserContext;
 import com.jmall.dto.ProductCreateRequest;
 import com.jmall.dto.ProductResponse;
 import com.jmall.dto.ProductUpdateRequest;
+import com.jmall.dto.PublishCheckResult;
 import com.jmall.entity.Product;
 import com.jmall.entity.Store;
 import com.jmall.entity.User;
 import com.jmall.repository.ProductRepository;
 import com.jmall.repository.StoreRepository;
 import com.jmall.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -30,12 +32,28 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final StoreRepository storeRepository;
     private final UserRepository userRepository;
+    private final ProductPublishService productPublishService;
+    private final ProductMetrics productMetrics;
 
+    @Autowired
     public ProductService(ProductRepository productRepository, StoreRepository storeRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository, ProductPublishService productPublishService,
+                          ProductMetrics productMetrics) {
         this.productRepository = productRepository;
         this.storeRepository = storeRepository;
         this.userRepository = userRepository;
+        this.productPublishService = productPublishService;
+        this.productMetrics = productMetrics != null ? productMetrics : ProductMetrics.disabled();
+    }
+
+    /**
+     * Keep direct unit-test construction compatible; the application uses the
+     * registry-backed constructor above.
+     */
+    public ProductService(ProductRepository productRepository, StoreRepository storeRepository,
+                          UserRepository userRepository, ProductPublishService productPublishService) {
+        this(productRepository, storeRepository, userRepository, productPublishService,
+                ProductMetrics.disabled());
     }
 
     @Transactional
@@ -52,11 +70,11 @@ public class ProductService {
 
         Product product = new Product();
         product.setStoreId(store.getId());
-        product.setTitle(request.getTitle());
+        product.setTitle(request.getTitle() == null ? "" : request.getTitle());
         product.setSubtitle(request.getSubtitle());
-        product.setCategory(request.getCategory());
+        product.setCategory(request.getCategory() == null ? "" : request.getCategory());
         product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
+        product.setPrice(request.getPrice() == null ? 0L : request.getPrice());
         product.setImages(request.getImages());
         product.setStyle(request.getStyle());
         product.setAiTitle(request.getAiTitle());
@@ -65,13 +83,17 @@ public class ProductService {
         product.setAiStylePreviews(request.getAiStylePreviews());
         product.setMarketInsights(request.getMarketInsights());
         product.setComplianceResult(request.getComplianceResult());
-        product.setStatus("published");
+        product.setAiDraftMeta(request.getAiDraftMeta());
+        product.setStatus("draft");
         product.setViewCount(0L);
         product.setLikeCount(0L);
         product.setSaleCount(0L);
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
-        productRepository.insert(product);
+        int affectedRows = productRepository.insert(product);
+        if (affectedRows > 0) {
+            productMetrics.recordProductEventAfterCommit(ProductMetrics.ProductEvent.DRAFT_CREATED);
+        }
 
         return R.ok(product);
     }
@@ -91,11 +113,12 @@ public class ProductService {
             return R.error(BizCodeEnum.AUTH_ERROR);
         }
 
-        product.setTitle(request.getTitle());
+        String previousStatus = product.getStatus();
+        product.setTitle(request.getTitle() == null ? "" : request.getTitle());
         product.setSubtitle(request.getSubtitle());
-        product.setCategory(request.getCategory());
+        product.setCategory(request.getCategory() == null ? "" : request.getCategory());
         product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
+        product.setPrice(request.getPrice() == null ? 0L : request.getPrice());
         product.setImages(request.getImages());
         product.setStyle(request.getStyle());
         product.setAiTitle(request.getAiTitle());
@@ -104,9 +127,25 @@ public class ProductService {
         product.setAiStylePreviews(request.getAiStylePreviews());
         product.setMarketInsights(request.getMarketInsights());
         product.setComplianceResult(request.getComplianceResult());
-        product.setStatus("published");
+        product.setAiDraftMeta(request.getAiDraftMeta());
+        if ("published".equals(product.getStatus())) {
+            PublishCheckResult check = productPublishService.check(product);
+            if (!check.publishable()) {
+                productMetrics.recordProductEventAfterCommit(ProductMetrics.ProductEvent.PUBLISH_BLOCKED);
+                return R.error(BizCodeEnum.PRODUCT_NOT_PUBLISHABLE.getCode(),
+                        "发布门禁未通过，线上商品未被修改", check);
+            }
+            product.setStatus("published");
+        } else {
+            product.setStatus("draft");
+        }
         product.setUpdatedAt(LocalDateTime.now());
-        productRepository.updateById(product);
+        int affectedRows = productRepository.updateById(product);
+        if (affectedRows > 0) {
+            productMetrics.recordProductEventAfterCommit("published".equals(previousStatus)
+                    ? ProductMetrics.ProductEvent.PUBLISHED_UPDATED
+                    : ProductMetrics.ProductEvent.DRAFT_SAVED);
+        }
 
         return R.ok(product);
     }
@@ -118,9 +157,16 @@ public class ProductService {
             return R.error(BizCodeEnum.PRODUCT_NOT_FOUND);
         }
 
+        Store ownerStore = storeRepository.selectById(product.getStoreId());
+        boolean ownProduct = ownerStore != null && UserContext.getUserId() != null
+                && UserContext.getUserId().equals(ownerStore.getUserId());
+        if (!"published".equals(product.getStatus()) && !ownProduct) {
+            return R.error(BizCodeEnum.PRODUCT_NOT_FOUND);
+        }
+
         // A detail-page request is a real view. Persist it instead of fabricating
         // popularity with a random display multiplier.
-        if (trackView) {
+        if (trackView && "published".equals(product.getStatus()) && !ownProduct) {
             product.setViewCount((product.getViewCount() == null ? 0L : product.getViewCount()) + 1);
             product.setUpdatedAt(LocalDateTime.now());
             productRepository.updateById(product);
@@ -141,11 +187,8 @@ public class ProductService {
         if (StringUtils.hasText(style)) {
             wrapper.eq(Product::getStyle, style);
         }
-        if (StringUtils.hasText(status)) {
-            wrapper.eq(Product::getStatus, status);
-        } else {
-            wrapper.eq(Product::getStatus, "published");
-        }
+        boolean ownerDraftQuery = "draft".equals(status) && storeId != null && ownsStore(storeId);
+        wrapper.eq(Product::getStatus, ownerDraftQuery ? "draft" : "published");
         if (storeId != null) {
             wrapper.eq(Product::getStoreId, storeId);
         }
@@ -235,6 +278,64 @@ public class ProductService {
         ));
     }
 
+    public R publishCheck(Long id) {
+        Product product = ownedProduct(id);
+        if (product == null) return ownedProductError(id);
+        PublishCheckResult check = productPublishService.check(product);
+        if (!check.publishable()) {
+            productMetrics.recordProductEventAfterCommit(ProductMetrics.ProductEvent.PUBLISH_BLOCKED);
+        }
+        return R.ok(check);
+    }
+
+    @Transactional
+    public R publish(Long id) {
+        Product product = ownedProduct(id);
+        if (product == null) return ownedProductError(id);
+        PublishCheckResult check = productPublishService.check(product);
+        if (!check.publishable()) {
+            productMetrics.recordProductEventAfterCommit(ProductMetrics.ProductEvent.PUBLISH_BLOCKED);
+            return R.error(BizCodeEnum.PRODUCT_NOT_PUBLISHABLE.getCode(),
+                    "发布门禁未通过", check);
+        }
+        String previousStatus = product.getStatus();
+        product.setStatus("published");
+        product.setUpdatedAt(LocalDateTime.now());
+        int affectedRows = productRepository.updateById(product);
+        if (affectedRows > 0 && !"published".equals(previousStatus)) {
+            productMetrics.recordProductEventAfterCommit(ProductMetrics.ProductEvent.PUBLISHED);
+        }
+        return R.ok(buildProductResponse(product));
+    }
+
+    @Transactional
+    public R unpublish(Long id) {
+        Product product = ownedProduct(id);
+        if (product == null) return ownedProductError(id);
+        product.setStatus("draft");
+        product.setUpdatedAt(LocalDateTime.now());
+        productRepository.updateById(product);
+        return R.ok(buildProductResponse(product));
+    }
+
+    private Product ownedProduct(Long id) {
+        Product product = productRepository.selectById(id);
+        if (product == null) return null;
+        return ownsStore(product.getStoreId()) ? product : null;
+    }
+
+    private boolean ownsStore(Long storeId) {
+        LambdaQueryWrapper<Store> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Store::getId, storeId).eq(Store::getUserId, UserContext.getUserId());
+        return storeRepository.selectCount(wrapper) > 0;
+    }
+
+    private R ownedProductError(Long id) {
+        return productRepository.selectById(id) == null
+                ? R.error(BizCodeEnum.PRODUCT_NOT_FOUND)
+                : R.error(BizCodeEnum.AUTH_ERROR);
+    }
+
     /**
      * Auto-create a store for users who don't have one yet.
      * Ensures every user can create products without manual store setup.
@@ -294,6 +395,7 @@ public class ProductService {
             response.setStoreName(store.getName());
             boolean ownProduct = UserContext.getUserId() != null
                     && UserContext.getUserId().equals(store.getUserId());
+            if (ownProduct) response.setAiDraftMeta(product.getAiDraftMeta());
             response.setPurchasable(!ownProduct && "published".equals(product.getStatus()));
             response.setUnavailableReason(ownProduct ? "不能购买自己店铺的商品" :
                     ("published".equals(product.getStatus()) ? "" : "商品已下架"));

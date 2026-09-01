@@ -39,6 +39,17 @@ def test_ai_service_accepts_dashscope_qwen_key_alias(monkeypatch):
     assert settings.qwen_api_key == "sk-qwen-test"
 
 
+def test_image_search_accepts_lowercase_picture_base_alias(monkeypatch):
+    monkeypatch.delenv("PICTURE_BASE", raising=False)
+    monkeypatch.delenv("IMAGE_SEARCH_MODEL", raising=False)
+    monkeypatch.setenv("picture_base", "qwen-plus-latest")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.image_search_provider == "qwen"
+    assert settings.image_search_model == "qwen-plus-latest"
+
+
 def test_explicit_mock_provider_never_leaks_to_real_keys():
     settings = Settings(
         ai_provider="mock",

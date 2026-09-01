@@ -22,8 +22,48 @@ export interface RegisterPayload {
 }
 
 // ============ Product Types ============
-export type ProductStatus = 'published' | 'rejected'
+export type ProductStatus = 'draft' | 'published'
 export type PlatformStyle = 'pinduoduo' | 'taobao' | 'jd' | 'suning' | 'xiaohongshu'
+
+/** Provenance for the single platform Skill used by an AI draft. */
+export interface PlatformSkillMetadata {
+  target_style?: PlatformStyle | string
+  platform_skill_id?: string | null
+  platform_skill_version?: string | null
+  fallback?: boolean
+}
+
+/** Stable cross-platform copy shape persisted inside style_adaptation.draft. */
+export interface PlatformDraft {
+  titles: string[]
+  selling_points: string[]
+  detail_copy: string
+  subtitle?: string
+  price_suggestion?: number | null
+  specifications?: string[]
+  target_audience?: string
+  usage_scenarios?: string[]
+  seo_keywords?: string[]
+  promotion_copy?: string
+  short_video_script?: string
+  pending_confirmations?: string[]
+  [key: string]: unknown
+}
+
+/** Current style-adaptation envelope plus legacy compatibility fields. */
+export interface PlatformStyleAdaptation extends PlatformSkillMetadata {
+  target_style?: PlatformStyle | string
+  adapted_title?: string
+  adapted_selling_points?: string[]
+  adapted_detail?: string
+  visual_params?: Record<string, unknown>
+  style_notes?: string
+  draft?: PlatformDraft
+  previews?: Record<string, PlatformStyleAdaptation>
+  platform_previews?: Record<string, PlatformStyleAdaptation>
+  pending_confirmations?: string[]
+  [key: string]: unknown
+}
 
 export interface Product {
   id: number
@@ -45,11 +85,24 @@ export interface Product {
   aiTitle?: string
   aiSellingPoints?: string | string[]
   aiDetail?: string
-  aiStylePreviews?: Record<PlatformStyle, StylePreview>
+  // Older rows used a five-platform map; current rows use a JSON envelope.
+  aiStylePreviews?: string | Record<string, unknown> | Record<PlatformStyle, StylePreview>
   marketInsights?: MarketInsight
   complianceResult?: ComplianceResult
+  aiDraftMeta?: string | Record<string, unknown>
   createdAt: string
   updatedAt: string
+}
+
+export interface PublishBlocker {
+  code: string
+  field: string
+  message: string
+}
+
+export interface PublishCheckResult {
+  publishable: boolean
+  publish_blockers: PublishBlocker[]
 }
 
 export interface StylePreview {
@@ -150,9 +203,11 @@ export interface AgentOrchestrateRequest {
 export interface AgentOrchestrateResponse {
   success: boolean
   marketResearch?: MarketInsight
-  copyDrafts?: Record<PlatformStyle, StylePreview>
+  copyDrafts?: Record<string, StylePreview | PlatformDraft | PlatformStyleAdaptation>
   complianceResult?: ComplianceResult
-  stylePreviews?: Record<PlatformStyle, StylePreview>
+  stylePreviews?: Record<string, StylePreview | PlatformDraft | PlatformStyleAdaptation>
+  style_adaptation?: PlatformStyleAdaptation
+  generation_metadata?: PlatformSkillMetadata
   errors: string[]
 }
 

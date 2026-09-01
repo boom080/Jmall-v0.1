@@ -42,7 +42,8 @@ class MarketResearchAgent(BaseAgent):
         "1. 分析该品类在电商平台的当前趋势和热度\n"
         "2. 提取高价值的搜索关键词和长尾词\n"
         "3. 总结同品类商品的价格带分布（低/中/高）\n"
-        "4. 给出针对该商品的运营建议\n\n"
+        "4. 从搜索证据中提取最多3个低风险消费人群标签，不推断儿童、孕妇、患者等敏感适用人群\n"
+        "5. 给出针对该商品的运营建议\n\n"
         "工具使用指南：\n"
         "- 如果需要了解品类的最新市场趋势、热搜关键词、竞品价格，请使用 search_market_trends 工具\n"
         "- 如果问题不涉及实时市场信息或品类分析，可以直接回答\n\n"
@@ -51,6 +52,7 @@ class MarketResearchAgent(BaseAgent):
         "{\n"
         '  "trends_summary": "市场趋势总结（字符串）",\n'
         '  "hot_keywords": ["关键词1", "关键词2", ...],\n'
+        '  "audience_segments": ["人群标签1", "人群标签2"],\n'
         '  "competitor_price_range": {"low": 最低价, "mid": 中间价, "high": 最高价, "currency": "CNY"},\n'
         '  "suggestions": ["建议1", "建议2", ...]\n'
         "}"
@@ -258,6 +260,7 @@ class MarketResearchAgent(BaseAgent):
             "research_scope": "公开互联网实时检索",
             "trends_summary": "实时市场调研暂时不可用，未生成趋势结论。",
             "hot_keywords": [],
+            "audience_segments": [],
             "competitor_price_range": {
                 "low": 0, "mid": 0, "high": 0, "currency": "CNY",
             },
@@ -308,12 +311,15 @@ class MarketResearchAgent(BaseAgent):
         research_result["sources"] = deduplicated_sources[:8]
         research_result["source_count"] = len(research_result["sources"])
         research_result["research_scope"] = "公开互联网实时检索"
+        research_result.setdefault("hot_keywords", [])
+        research_result.setdefault("audience_segments", [])
 
         # If parsing failed, use raw content as fallback
         if "raw_content" in research_result and "parse_error" in research_result:
             research_result["status"] = "failed"
             research_result["trends_summary"] = "市场结果结构化失败，未生成趋势结论。"
             research_result["hot_keywords"] = []
+            research_result["audience_segments"] = []
             research_result["competitor_price_range"] = {
                 "low": 0, "mid": 0, "high": 0, "currency": "CNY",
             }

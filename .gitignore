@@ -47,3 +47,9 @@ Thumbs.db
 # Logs
 logs/
 *.log
+#markdown
+*.md
+!/README.md
+
+# This frontend uses npm/package-lock.json; avoid a second lockfile.
+/jmall-web/pnpm-lock.yaml

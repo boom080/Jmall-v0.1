@@ -2,6 +2,7 @@ package com.jmall.service;
 
 import com.jmall.common.R;
 import com.jmall.common.UserContext;
+import com.jmall.common.BizCodeEnum;
 import com.jmall.dto.AiProxyRequest;
 import org.springframework.beans.factory.annotation.Value;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +58,11 @@ public class AiProxyService {
     @SuppressWarnings("unchecked")
     private Map<String, Object> normalizeForAgent(Map<String, Object> request) {
         Map<String, Object> normalized = new HashMap<>(request);
+        // Never trust a browser-supplied identity. Authenticated entry points
+        // overwrite this below with UserContext; unauthenticated calls forward
+        // no identity at all.
+        normalized.remove("user_id");
+        normalized.remove("userId");
 
         // Convert productInfo -> product_info
         if (normalized.containsKey("productInfo") && !normalized.containsKey("product_info")) {
@@ -81,9 +87,14 @@ public class AiProxyService {
         // Also normalize nested productInfo inside product_info if it was already snake_case
         if (normalized.containsKey("product_info") && normalized.get("product_info") instanceof Map) {
             Map<String, Object> pi = new HashMap<>((Map<String, Object>) normalized.get("product_info"));
-            if (pi.containsKey("productInfo")) {
-                // Already in the right place, but sub-fields need conversion - they should be fine
-                // since the value is already a Map with title/category/description/price
+            if (pi.containsKey("targetAudience") && !pi.containsKey("target_audience")) {
+                pi.put("target_audience", pi.remove("targetAudience"));
+            }
+            if (pi.containsKey("usageScenarios") && !pi.containsKey("usage_scenarios")) {
+                pi.put("usage_scenarios", pi.remove("usageScenarios"));
+            }
+            if (pi.containsKey("seoKeywords") && !pi.containsKey("seo_keywords")) {
+                pi.put("seo_keywords", pi.remove("seoKeywords"));
             }
             normalized.put("product_info", pi);
         }
@@ -97,7 +108,48 @@ public class AiProxyService {
         if (userId != null) {
             normalized.put("user_id", userId);
         }
+
+        R preflight = assessNormalized(normalized);
+        if (preflight.getCode() != BizCodeEnum.SUCCESS.getCode()) {
+            return preflight;
+        }
+        Map<String, Object> assessment = extractInputAssessment(preflight);
+        if (assessment == null) {
+            return R.error(50002, "AI input assessment returned invalid result");
+        }
+        if (!Boolean.TRUE.equals(assessment.get("ready"))) {
+            return preflight;
+        }
         return forwardAndCharge("/api/agent/orchestrate", normalized, COST_ORCHESTRATE);
+    }
+
+    /**
+     * Perform the deterministic input preflight without consuming gold.
+     *
+     * The browser-facing payload uses camelCase for top-level fields while the
+     * Python agent API uses snake_case. Reuse the same normalization as the
+     * paid orchestration endpoint, then forward through the non-billing path.
+     */
+    public R assessInput(Map<String, Object> request) {
+        Map<String, Object> normalized = normalizeForAgent(request);
+        Long userId = UserContext.getUserId();
+        if (userId != null) {
+            normalized.put("user_id", userId);
+        }
+        return assessNormalized(normalized);
+    }
+
+    /**
+     * Proxy Image Scout without charging gold. The Python service repeats the
+     * deterministic input gate before making any paid upstream search request.
+     */
+    public R findImageCandidates(Map<String, Object> request) {
+        Map<String, Object> normalized = normalizeForAgent(request);
+        Long userId = UserContext.getUserId();
+        if (userId != null) {
+            normalized.put("user_id", userId);
+        }
+        return forwardPost("/api/agent/images/candidates", normalized);
     }
 
     public SseEmitter orchestrateStream(Map<String, Object> request) {
@@ -109,6 +161,27 @@ public class AiProxyService {
         final Map<String, Object> normalizedRequest = normalizeForAgent(request);
         if (userId != null) {
             normalizedRequest.put("user_id", userId);
+        }
+
+        // The browser normally runs this check first, but the paid endpoint
+        // must enforce it again so direct callers cannot be charged for an
+        // input that the Python graph will reject without running any Agent.
+        R preflight = assessNormalized(normalizedRequest);
+        if (preflight.getCode() != BizCodeEnum.SUCCESS.getCode()) {
+            completePreflightEmitter(emitter, preflight, null);
+            return emitter;
+        }
+        Map<String, Object> assessment = extractInputAssessment(preflight);
+        if (assessment == null) {
+            completePreflightEmitter(
+                    emitter,
+                    R.error(50002, "AI input assessment returned invalid result"),
+                    null);
+            return emitter;
+        }
+        if (!Boolean.TRUE.equals(assessment.get("ready"))) {
+            completePreflightEmitter(emitter, preflight, assessment);
+            return emitter;
         }
 
         // Charge gold
@@ -224,6 +297,50 @@ public class AiProxyService {
         });
 
         return emitter;
+    }
+
+    private R assessNormalized(Map<String, Object> normalized) {
+        return forwardPost("/api/agent/input-assessment", normalized);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> extractInputAssessment(R response) {
+        if (response == null || !(response.getData() instanceof Map)) {
+            return null;
+        }
+        Object assessment = ((Map<String, Object>) response.getData()).get("input_assessment");
+        return assessment instanceof Map ? (Map<String, Object>) assessment : null;
+    }
+
+    private void completePreflightEmitter(
+            SseEmitter emitter,
+            R preflight,
+            Map<String, Object> assessment) {
+        try {
+            if (preflight.getCode() != BizCodeEnum.SUCCESS.getCode() || assessment == null) {
+                emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data(Map.of("error", preflight.getMsg())));
+                emitter.complete();
+                return;
+            }
+
+            Map<String, Object> progress = new HashMap<>();
+            progress.put("agent", "input_assessment");
+            progress.put("status", "completed");
+            progress.put("input_assessment", assessment);
+            emitter.send(SseEmitter.event().name("agent_progress").data(progress));
+
+            Map<String, Object> finalResult = new HashMap<>();
+            finalResult.put("overall_status", "needs_input");
+            finalResult.put("input_assessment", assessment);
+            emitter.send(SseEmitter.event()
+                    .name("orchestration_complete")
+                    .data(Map.of("final_result", finalResult)));
+            emitter.complete();
+        } catch (Exception e) {
+            emitter.completeWithError(e);
+        }
     }
 
     public R generateProductCopy(Long productId, String style) {

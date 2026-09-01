@@ -92,7 +92,7 @@
 
     <!-- Empty State -->
     <el-empty v-if="!loading && products.length === 0" description="还没有商品，去商家中心上架第一个吧！">
-      <el-button type="primary" @click="$router.push('/merchant/products')">🏪 去上架</el-button>
+      <el-button type="primary" @click="$router.push('/merchant/products/new')">🏪 去上架</el-button>
     </el-empty>
 
     <!-- Pagination -->

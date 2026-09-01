@@ -2,9 +2,24 @@
   <div class="product-editor">
     <div class="editor-header">
       <h2>{{ isEdit ? '编辑商品' : '上架新商品' }}</h2>
-      <el-button type="primary" size="large" @click="triggerAgent">
-        <el-icon><MagicStick /></el-icon> AI Agent 帮我
-      </el-button>
+      <div class="editor-actions">
+        <el-button size="large" :loading="assessmentLoading" :disabled="agentLoading || assessmentLoading" @click="checkInputOnly">免费检查信息</el-button>
+        <el-button type="primary" size="large" :loading="agentLoading" :disabled="agentLoading || assessmentLoading" @click="triggerAgent">
+          <el-icon><MagicStick /></el-icon> AI 检查并生成
+        </el-button>
+        <div class="image-search-action" :title="imageSearchDisabledReason">
+          <el-button
+            type="success"
+            plain
+            size="large"
+            :loading="imageSearchLoading"
+            :disabled="!canSearchImageCandidates"
+            :aria-label="canSearchImageCandidates ? '根据完善内容找图' : imageSearchDisabledReason"
+            @click="searchImageCandidates"
+          >🔎 根据完善内容找图</el-button>
+          <span v-if="!canSearchImageCandidates" class="image-search-action-hint">{{ imageSearchDisabledReason }}</span>
+        </div>
+      </div>
     </div>
 
     <el-row :gutter="24">
@@ -46,16 +61,8 @@
                       </el-button>
                     </div>
                   </div>
-                  <!-- AI Generated Image Preview -->
-                  <div v-if="generatedImage && form.images.length === 0" class="image-item generated">
-                    <img :src="generatedImage" class="uploaded-image" />
-                    <div class="image-actions">
-                      <el-button circle size="small" type="success" @click="useGeneratedImage">使用</el-button>
-                    </div>
-                    <div class="generated-label">🤖 AI 生成</div>
-                  </div>
                   <!-- Category Fallback Image -->
-                  <div v-if="!generatedImage && form.images.length === 0" class="image-item fallback">
+                  <div v-if="form.images.length === 0" class="image-item fallback">
                     <img :src="categoryPlaceholder" class="uploaded-image" />
                     <div class="generated-label">📷 示例图</div>
                   </div>
@@ -76,12 +83,70 @@
                     </div>
                   </el-upload>
                 </div>
-                <p class="upload-hint">支持 JPG/PNG/WebP，单张不超过 5MB，最多 6 张。未上传时将根据品类自动生成示例图</p>
+                <p class="upload-hint">支持 JPG/PNG/WebP，单张不超过 5MB，最多 6 张；也可以让 Image Scout 搜索相似图片。</p>
+
+                <div v-if="form.images.length === 0" class="image-scout">
+                  <div class="image-scout-header">
+                    <div>
+                      <strong>🔎 Image Scout</strong>
+                      <p>根据已确认的商品事实搜索 Google 图片，最多展示 3 个带来源候选。</p>
+                    </div>
+                  </div>
+                  <el-alert
+                    title="Jmall 只负责搜索和展示，不保证图片使用权，也不会移除水印。请在使用前自行核对。"
+                    type="warning"
+                    :closable="false"
+                    show-icon
+                  />
+                  <p v-if="imageSearchMessage" class="image-search-message">{{ imageSearchMessage }}</p>
+                  <div v-if="imageCandidates.length" class="image-candidates">
+                    <article v-for="candidate in imageCandidates" :key="candidate.candidate_id" class="image-candidate-card">
+                      <img
+                        :src="candidate.thumbnail_url"
+                        :alt="candidate.title || form.title"
+                        class="candidate-thumbnail"
+                        referrerpolicy="no-referrer"
+                      />
+                      <div class="candidate-body">
+                        <strong>{{ candidate.title || '相似商品图片' }}</strong>
+                        <span v-if="candidate.width && candidate.height" class="candidate-size">
+                          {{ candidate.width }} × {{ candidate.height }}
+                        </span>
+                        <a
+                          :href="candidate.source_page_url"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >来源：{{ candidate.source_name || candidate.author }}</a>
+                        <div class="candidate-risks">
+                          <el-tag
+                            v-for="risk in candidate.risk_flags"
+                            :key="risk"
+                            size="small"
+                            type="warning"
+                            effect="plain"
+                          >{{ imageRiskLabel(risk) }}</el-tag>
+                        </div>
+                        <ul v-if="candidate.risk_reasons.length" class="candidate-risk-reasons">
+                          <li v-for="reason in candidate.risk_reasons" :key="reason">{{ reason }}</li>
+                        </ul>
+                        <el-button size="small" type="primary" @click="useImageCandidate(candidate)">使用此图</el-button>
+                      </div>
+                    </article>
+                  </div>
+                </div>
               </div>
             </el-form-item>
 
-            <el-form-item label="商品详情（AI 将生成结构化详情页文案）">
-              <el-input v-model="form.description" type="textarea" :rows="12" placeholder="AI 将根据商品事实生成商品概览、核心亮点、规格参数、适用场景与购买提示" maxlength="5000" show-word-limit />
+            <el-form-item label="商品说明 / 一段话需求">
+              <el-input
+                v-model="form.description"
+                type="textarea"
+                :rows="10"
+                placeholder="可以直接写一段完整的话，例如：我想卖一款可拆洗的记忆棉 U 型枕，主要给经常出差的上班族在飞机和高铁上使用，尺寸为 30×28cm，希望突出便携和颈部支撑。"
+                maxlength="5000"
+                show-word-limit
+              />
+              <p class="input-guidance">写清楚“卖什么、有哪些真实特点、卖给谁”，使用场景可以帮助 AI 理解得更准；也可以尽量填写下方规格、人群和场景。AI 会先检查信息，信息不足时不会启动完整 Agent。</p>
               <el-tag v-if="aiFields.description" size="small" type="warning" effect="plain" class="ai-badge">🤖 AI 建议</el-tag>
             </el-form-item>
             <el-row :gutter="16">
@@ -118,7 +183,7 @@
               </div>
             </el-form-item>
             <el-form-item label="展示风格">
-              <el-select v-model="form.style">
+              <el-select v-model="form.style" @change="handlePlatformChange">
                 <el-option v-for="s in styles" :key="s.value" :label="s.label" :value="s.value">
                   {{ s.icon }} {{ s.label }}
                 </el-option>
@@ -132,10 +197,29 @@
                 </el-tag>
               </div>
             </el-form-item>
-            <el-form-item>
-              <el-button type="success" size="large" @click="saveProduct" :loading="saving">
-                {{ isEdit ? '保存修改' : '发布商品' }}
-              </el-button>
+            <el-alert
+              v-if="publishBlockers.length"
+              title="还不能发布，请先处理以下问题"
+              type="warning"
+              :closable="false"
+              show-icon
+              class="publish-blockers"
+            >
+              <ul>
+                <li v-for="blocker in publishBlockers" :key="`${blocker.code}-${blocker.field}`">
+                  {{ blocker.message }}
+                </li>
+              </ul>
+            </el-alert>
+            <el-form-item class="publish-actions">
+              <template v-if="productStatus === 'published'">
+                <el-button type="success" size="large" @click="savePublishedChanges" :loading="saving">保存修改</el-button>
+                <el-button size="large" @click="unpublishAndSave" :loading="saving">下架并保存草稿</el-button>
+              </template>
+              <template v-else>
+                <el-button size="large" @click="saveDraft" :loading="saving">保存草稿</el-button>
+                <el-button type="success" size="large" @click="checkAndPublish" :loading="saving">检查并发布</el-button>
+              </template>
             </el-form-item>
           </el-form>
         </el-card>
@@ -147,7 +231,7 @@
           <el-card shadow="never">
             <template #header>
               <div class="agent-panel-header">
-                <span>🤖 Agent 参谋团</span>
+                <span>🤖 AI 上架助手</span>
                 <el-switch v-model="agentActive" size="small" />
               </div>
             </template>
@@ -161,6 +245,49 @@
               show-icon
               style="margin-bottom: 16px;"
             />
+            <p v-if="platformSkillDisplay" class="platform-skill-meta">本次生成：{{ platformSkillDisplay }}</p>
+            <el-alert
+              v-if="platformSwitchPending"
+              :title="`已切换到${getStyleLabel(platformSwitchPending.to)}，当前仍保留${getStyleLabel(platformSwitchPending.from)}文案，请重新生成后再使用新平台内容。`"
+              type="warning"
+              :closable="false"
+              show-icon
+              style="margin-bottom: 16px;"
+            />
+
+            <!-- Input completeness gate -->
+            <div
+              v-if="inputAssessment"
+              class="agent-section input-assessment"
+              :class="inputAssessment.ready ? 'assessment-ready' : 'assessment-needs-input'"
+            >
+              <div class="assessment-title">
+                <h4>{{ inputAssessment.ready ? '✅ 商品信息可以开始生成' : '🧩 请先补全商品信息' }}</h4>
+                <strong>{{ inputAssessment.score }}%</strong>
+              </div>
+              <el-progress
+                :percentage="inputAssessment.score"
+                :status="inputAssessment.ready ? 'success' : 'warning'"
+                :stroke-width="8"
+                :show-text="false"
+              />
+              <p v-if="inputAssessment.summary" class="assessment-summary">{{ inputAssessment.summary }}</p>
+              <div v-if="inputAssessment.understood.length" class="assessment-group">
+                <span class="assessment-label">AI 已理解</span>
+                <el-tag v-for="item in inputAssessment.understood" :key="item" size="small" type="success" effect="plain">{{ item }}</el-tag>
+              </div>
+              <div v-if="inputAssessment.missing.length" class="assessment-group">
+                <span class="assessment-label">仍然缺少</span>
+                <el-tag v-for="item in inputAssessment.missing" :key="item" size="small" type="warning" effect="plain">{{ item }}</el-tag>
+              </div>
+              <div v-if="inputAssessment.questions.length" class="assessment-questions">
+                <strong>请补充：</strong>
+                <ol>
+                  <li v-for="question in inputAssessment.questions" :key="question">{{ question }}</li>
+                </ol>
+                <p>直接补充左侧原表单后再次检查即可；不必把示例全部填满，信息不足时不会调用模型或扣费。</p>
+              </div>
+            </div>
 
             <!-- Agent Progress Checklist -->
             <div v-if="agentLoading || Object.keys(agentStages).length > 0" class="agent-checklist">
@@ -283,8 +410,14 @@
 
             <!-- Agent Completion Summary -->
             <div v-if="agentComplete" class="agent-section agent-complete">
-              <h4>{{ agentHadErrors ? '⚠️ Agent 降级完成' : '✅ Agent 任务完成' }}</h4>
-              <p class="complete-summary">{{ agentCompleteSummary }}</p>
+              <h4>{{ inputAssessment && !inputAssessment.ready ? '🧩 等待补充商品信息' : (agentHadErrors ? '⚠️ Agent 降级完成' : '✅ Agent 任务完成') }}</h4>
+              <p class="complete-summary" :class="{ 'needs-input': inputAssessment && !inputAssessment.ready }">{{ agentCompleteSummary }}</p>
+              <div v-if="pendingConfirmations.length" class="pending-confirmations">
+                <strong>待商家确认：</strong>
+                <ul>
+                  <li v-for="item in pendingConfirmations" :key="item">{{ item }}</li>
+                </ul>
+              </div>
               <div v-if="agentCostStats" class="cost-stats">
                 <el-tag size="small" type="info">{{ agentCostStats }}</el-tag>
                 <details v-if="agentTokenBreakdown.length" class="cost-breakdown">
@@ -312,19 +445,42 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { productApi } from '@/services/products'
+import { createEditorFunnel } from '@/services/editorTelemetry'
+import {
+  aiImageApi,
+  buildSelectedImageSource,
+  imageSearchInputHint,
+  imageRiskLabel,
+  normalizeAiDraftMeta,
+  type ImageCandidate,
+} from '@/services/aiImages'
 import { useAuthStore } from '@/stores/auth'
-import type { PlatformStyle } from '@/types'
+import {
+  buildPlatformDraftPayload,
+  extractPlatformSkillMetadata,
+  filterSinglePlatformResult,
+  isEditablePlatformContent,
+  markEditablePlatformContent,
+  mergePlatformDraftMeta,
+  normalizePlatformDraft,
+} from '@/utils/platformDraft'
+import type { PlatformSkillMetadata, PlatformStyle, ProductStatus, PublishBlocker } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const editorFunnel = createEditorFunnel()
 
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
+const savedDraftId = ref<number | null>(null)
+const productStatus = ref<ProductStatus>('draft')
+const publishBlockers = ref<PublishBlocker[]>([])
 const agentActive = ref(true)
 const agentLoading = ref(false)
+const assessmentLoading = ref(false)
 const agentStatus = ref('')
 const agentDemoMode = ref(false)
 const agentComplete = ref(false)
@@ -342,13 +498,26 @@ const currentJobId = ref<string | null>(null)  // Persistent job ID for reconnec
 const JOB_STORAGE_KEY = 'jmall-agent-job'
 const JOB_CONSUMED_KEY = 'jmall-agent-consumed-job'
 
+type InputAssessment = {
+  status: string
+  ready: boolean
+  score: number
+  understood: string[]
+  missing: string[]
+  questions: string[]
+  summary: string
+}
+
+const inputAssessment = ref<InputAssessment | null>(null)
+
 const stageList = [
+  { key: 'input_assessment', label: '🧩 信息完整度检查' },
   { key: 'parse_intent', label: '🧠 解析意图' },
   { key: 'market_research', label: '🔍 市场调研' },
   { key: 'rag_retrieval', label: '📚 知识库检索' },
   { key: 'copy_generation', label: '✍️ 文案生成' },
-  { key: 'compliance_review', label: '⚖️ 合规审查' },
   { key: 'style_adaptation', label: '🎨 风格适配' },
+  { key: 'compliance_review', label: '⚖️ 合规审查' },
 ]
 
 const agentHadErrors = computed(() => Object.values(agentStages.value).includes('error'))
@@ -357,6 +526,7 @@ function stageDetail(key: string): string {
   if (agentStages.value[key] === 'error') return agentErrors.value[key] || '该步骤已降级'
   if (agentStages.value[key] !== 'completed') return ''
   switch (key) {
+    case 'input_assessment': return inputAssessment.value?.ready ? '信息已达到生成门槛' : '等待补充商品信息'
     case 'market_research': return marketResearchDetail.value
     case 'rag_retrieval': return ragDetail.value
     case 'copy_generation': return copyDetail.value
@@ -434,24 +604,26 @@ function mapMarketInsights(mi: any) {
   }
 }
 
-function mergeStylePreviews(sp: any) {
+function mergeStylePreviews(sp: any, targetStyle?: string) {
   if (!sp) return
-  const allPreviews = sp.previews || sp.platform_previews
-  if (allPreviews && typeof allPreviews === 'object') {
-    stylePreviews.value = { ...stylePreviews.value, ...allPreviews }
-  }
-  if (sp.adapted_title || sp.titles?.[0] || sp.adapted_selling_points || sp.selling_points) {
-    const styleKey = sp.target_style || sp.style || form.style
-    stylePreviews.value = {
-      ...stylePreviews.value,
-      [styleKey]: {
-        ...stylePreviews.value[styleKey],
-        adapted_title: sp.adapted_title || sp.titles?.[0] || form.title,
-        adapted_selling_points: sp.adapted_selling_points || sp.selling_points || [],
-        adapted_detail: sp.adapted_detail || sp.detail_copy || form.description,
-      },
-    }
-  }
+  const requestedStyle = targetStyle || sp.target_style || sp.targetStyle || sp.style || form.style
+  const normalized = filterSinglePlatformResult(sp, requestedStyle)
+  const styleKey = normalized.target_style
+  if (!styleKey) return
+
+  // The editor deliberately owns one current result. Legacy five-platform
+  // payloads are filtered by filterSinglePlatformResult before display.
+  stylePreviews.value = { [styleKey]: normalized.style_adaptation }
+  generatedPlatformStyle.value = styleKey
+  const previousMeta = platformSkillMeta.value
+  const incomingMeta = normalized.generation_metadata
+  const sameTarget = previousMeta?.target_style === incomingMeta.target_style
+  platformSkillMeta.value = sameTarget
+    && !incomingMeta.fallback
+    && incomingMeta.platform_skill_id === null
+    && incomingMeta.platform_skill_version === null
+    ? previousMeta
+    : incomingMeta
 }
 
 const form = reactive({
@@ -488,8 +660,37 @@ const complianceResult = ref<any>(null)
 const agentFullData = ref<any>(null)
 const aiPriceSuggestionYuan = ref<number | null>(null)
 const knowledgeBaseId = ref('')
-const generatedImage = ref('')
-const imageGenFailed = ref(false)
+const imageCandidates = ref<ImageCandidate[]>([])
+const imageSearchLoading = ref(false)
+const imageSearchMessage = ref('')
+const imageSearchProvider = ref('')
+const aiDraftMeta = ref<Record<string, unknown>>({})
+const imageSearchRequestId = ref(0)
+const platformSkillMeta = ref<PlatformSkillMetadata | null>(null)
+const generatedPlatformStyle = ref<string | null>(null)
+const platformSwitchPending = ref<{ from: string; to: string } | null>(null)
+// Image Scout is intentionally tied to the latest completed AI result. The
+// snapshot is captured only after generated fields have been written back to
+// the form, so any subsequent merchant edit automatically invalidates it.
+const lastCompletedGenerationSnapshot = ref<string | null>(null)
+
+const platformSkillDisplay = computed(() => {
+  const meta = platformSkillMeta.value
+  if (!meta?.target_style) return ''
+  if (meta.fallback) return `${getStyleLabel(meta.target_style)} · 演示模板（无实际 Skill ID/版本）`
+  if (meta.platform_skill_id && meta.platform_skill_version) {
+    return `${getStyleLabel(meta.target_style)} · Skill ${meta.platform_skill_id} / ${meta.platform_skill_version}`
+  }
+  if (meta.platform_skill_id) return `${getStyleLabel(meta.target_style)} · Skill ${meta.platform_skill_id} / 版本未记录`
+  return `${getStyleLabel(meta.target_style)} · Skill 版本未记录`
+})
+const pendingConfirmations = computed(() => toTextItems(
+  Object.prototype.hasOwnProperty.call(agentFullData.value?.draft || {}, 'pending_confirmations')
+    ? agentFullData.value.draft.pending_confirmations
+    : Object.prototype.hasOwnProperty.call(agentFullData.value?.copy || {}, 'pending_confirmations')
+      ? agentFullData.value.copy.pending_confirmations
+      : aiDraftMeta.value.pending_confirmations,
+))
 
 // Image upload
 const uploadUrl = '/api/upload/image'
@@ -499,7 +700,7 @@ const uploadHeaders = computed(() => {
   return h
 })
 
-// ===== Image Generation =====
+// ===== Image Scout =====
 const CATEGORY_IMAGES: Record<string, string> = {
   '食品饮料': 'https://placehold.co/400x400/fff3e0/ff9800?text=🍪+食品饮料',
   '生鲜水果': 'https://placehold.co/400x400/e8f5e9/4caf50?text=🍎+生鲜水果',
@@ -515,40 +716,91 @@ const categoryPlaceholder = computed(() => {
   return CATEGORY_IMAGES[form.category] || 'https://placehold.co/400x400/e8e8e8/999?text=📦+商品'
 })
 
-async function tryGenerateImage() {
-  if (form.images.length > 0 || !form.title) return
-  imageGenFailed.value = false
+async function searchImageCandidates() {
+  // Keep the guard inside the handler as well as on the button. This covers
+  // keyboard/programmatic clicks and prevents stale form data from reaching
+  // the provider while a generation or edit is in flight.
+  const disabledReason = imageSearchDisabledReason.value
+  if (disabledReason) {
+    imageSearchMessage.value = disabledReason
+    ElMessage.warning(disabledReason)
+    return
+  }
+  const requestId = ++imageSearchRequestId.value
+  const productInfo = buildImageSearchProductInfo()
+  const inputHint = imageSearchInputHint(productInfo)
+  if (inputHint) {
+    imageSearchMessage.value = inputHint
+    ElMessage.warning(inputHint)
+    return
+  }
+  const inputSnapshot = buildImageSearchSnapshot()
+  imageSearchLoading.value = true
+  imageSearchMessage.value = ''
+  imageCandidates.value = []
   try {
-    const resp = await fetch('/api/ai/product/copy', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jmall-token')}`,
-      },
-      body: JSON.stringify({
-        productInfo: { title: form.title, category: form.category || '其他', description: form.description, price: form.priceYuan },
-        targetStyle: form.style,
-      }),
-    })
-    if (resp.ok) {
-      const data = await resp.json()
-      // Check if we got an image URL back
-      const imgUrl = data?.data?.image_url || data?.image_url
-      if (imgUrl) {
-        generatedImage.value = imgUrl
+    const result = await aiImageApi.candidates(productInfo)
+    if (
+      requestId !== imageSearchRequestId.value
+      || form.images.length > 0
+      || lastCompletedGenerationSnapshot.value !== inputSnapshot
+      || buildImageSearchSnapshot() !== inputSnapshot
+    ) {
+      if (requestId === imageSearchRequestId.value && form.images.length === 0) {
+        imageSearchMessage.value = '表单已修改，请重新执行 AI 检查并生成后再搜索图片'
       }
+      return
     }
-  } catch {
-    imageGenFailed.value = true
+    imageSearchProvider.value = result.provider || ''
+    const assessment = normalizeInputAssessment(result.input_assessment)
+    if (assessment) inputAssessment.value = assessment
+    if (result.status === 'needs_input') {
+      imageSearchMessage.value = result.message || '请先补全商品信息，再搜索图片'
+      ElMessage.warning(inputAssessment.value?.questions[0] || imageSearchMessage.value)
+      return
+    }
+    imageCandidates.value = Array.isArray(result.candidates) ? result.candidates.slice(0, 3) : []
+    imageSearchMessage.value = result.message || (
+      imageCandidates.value.length
+        ? `找到 ${imageCandidates.value.length} 个相关候选，请核对来源和风险后选择`
+        : '没有找到来源完整的相关图片，请调整商品信息或上传自有图片'
+    )
+    if (!imageCandidates.value.length) {
+      ElMessage.warning(imageSearchMessage.value)
+    }
+  } catch (error: any) {
+    imageSearchMessage.value = error?.message || '图片检索失败，请稍后重试或上传自有图片'
+    ElMessage.error(imageSearchMessage.value)
+  } finally {
+    if (requestId === imageSearchRequestId.value) imageSearchLoading.value = false
   }
 }
 
-function useGeneratedImage() {
-  if (generatedImage.value) {
-    form.images = [generatedImage.value]
-    generatedImage.value = ''
-    ElMessage.success('已使用 AI 生成图片')
+async function useImageCandidate(candidate: ImageCandidate) {
+  const riskSummary = candidate.risk_reasons.length
+    ? `\n\n需要核对：${candidate.risk_reasons.join('；')}`
+    : ''
+  try {
+    await ElMessageBox.confirm(
+      `图片来自「${candidate.source_name || candidate.author}」。Jmall 仅提供检索和展示，不保证图片使用权。请确认你将自行核对并承担后续使用责任。${riskSummary}`,
+      '使用搜索图片前确认',
+      {
+        type: 'warning',
+        confirmButtonText: '我已了解，使用此图',
+        cancelButtonText: '暂不使用',
+      },
+    )
+  } catch {
+    return
   }
+  form.images = [candidate.original_url]
+  aiDraftMeta.value.selected_image_source = buildSelectedImageSource(
+    candidate,
+    imageSearchProvider.value,
+  )
+  imageCandidates.value = []
+  ElMessage.success('已选择搜索图片，来源与风险确认已记录')
+  editorFunnel.imageResolved()
 }
 
 // ===== Platform-specific safe fallback =====
@@ -607,8 +859,153 @@ function formatPriceYuan(yuan: number) {
   return Number(yuan || 0).toFixed(2)
 }
 
+function toTextArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(item => String(item).trim()).filter(Boolean)
+  if (typeof value === 'string' && value.trim()) return [value.trim()]
+  return []
+}
+
+function normalizeInputAssessment(payload: any): InputAssessment | null {
+  const candidates = [
+    payload?.data?.input_assessment,
+    payload?.data?.inputAssessment,
+    payload?.data?.assessment,
+    payload?.data,
+    payload?.input_assessment,
+    payload?.inputAssessment,
+    payload?.assessment,
+    payload,
+  ]
+  const raw = candidates.find(candidate => candidate && typeof candidate === 'object'
+    && (candidate.status !== undefined || candidate.ready !== undefined || candidate.questions !== undefined))
+  if (!raw) return null
+
+  const status = String(raw.status || (raw.ready ? 'ready' : 'needs_input'))
+  const ready = typeof raw.ready === 'boolean'
+    ? raw.ready
+    : ['ready', 'complete', 'sufficient'].includes(status.toLowerCase())
+  const rawScore = Number(raw.score ?? raw.completeness_score ?? (ready ? 100 : 0))
+
+  return {
+    status,
+    ready,
+    score: Math.max(0, Math.min(100, Number.isFinite(rawScore) ? Math.round(rawScore) : 0)),
+    understood: toTextArray(raw.understood ?? raw.understood_items ?? raw.confirmed_facts ?? raw.confirmedFacts),
+    missing: toTextArray(raw.missing ?? raw.missing_fields ?? raw.missing_critical_fields ?? raw.missingCriticalFields),
+    questions: toTextArray(raw.questions).slice(0, 3),
+    summary: String(raw.summary || raw.reason || ''),
+  }
+}
+
+function buildAgentRequest() {
+  return {
+    productInfo: {
+      title: form.title,
+      category: form.category || '其他',
+      description: form.description,
+      price: form.priceYuan,
+      specifications: form.specifications,
+      target_audience: form.targetAudience,
+      usage_scenarios: form.usageScenarios,
+    },
+    targetStyle: form.style,
+    knowledgeBaseId: knowledgeBaseId.value || undefined,
+    productDraftId: isEdit.value ? Number(route.params.id) : undefined,
+  }
+}
+
+function buildImageSearchProductInfo(): Record<string, unknown> {
+  const { productInfo } = buildAgentRequest()
+  return {
+    ...productInfo,
+    // These fields are generated/enriched by the selected platform Skill and
+    // should be available to Image Scout when the backend accepts them.
+    subtitle: form.subtitle,
+    seo_keywords: form.seoKeywords
+      .split(/[,，\n；;]+/)
+      .map(item => item.trim())
+      .filter(Boolean),
+  }
+}
+
+function buildImageSearchSnapshot(): string {
+  return JSON.stringify({
+    productInfo: buildImageSearchProductInfo(),
+    targetStyle: form.style,
+    // A promotion edit is not sent to the image provider, but it is still a
+    // form edit. Requiring a fresh generation keeps the button's state honest.
+    promotionCopy: form.promotionCopy,
+  })
+}
+
+const imageSearchDisabledReason = computed(() => {
+  if (form.images.length > 0) return '已有商品图片；如需搜索候选，请先移除现有图片'
+  if (imageSearchLoading.value) return '图片搜索进行中，请稍候'
+  if (assessmentLoading.value || agentLoading.value) return 'AI 正在检查或完善商品信息，请等待完成'
+  if (agentDemoMode.value) return '当前是安全降级模板，无法确认完善后的信息；请重试 AI 检查并生成'
+  if (!agentComplete.value || !lastCompletedGenerationSnapshot.value || !generatedPlatformStyle.value) {
+    return '请先完成 AI 检查并生成，AI 完善信息后才能搜索图片'
+  }
+  if (lastCompletedGenerationSnapshot.value !== buildImageSearchSnapshot()) {
+    return '表单已修改，请重新执行 AI 检查并生成后再搜索图片'
+  }
+  return ''
+})
+
+const canSearchImageCandidates = computed(() => !imageSearchDisabledReason.value)
+
+async function preflightInputAssessment(requestPayload: ReturnType<typeof buildAgentRequest>): Promise<InputAssessment> {
+  const response = await fetch('/api/ai/input-assessment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('jmall-token')}`,
+    },
+    body: JSON.stringify(requestPayload),
+  })
+  const body = await response.json().catch(() => null)
+  if (!response.ok || (body?.code !== undefined && Number(body.code) !== 10000)) {
+    throw new Error(body?.msg || body?.message || `HTTP ${response.status}`)
+  }
+  const assessment = normalizeInputAssessment(body)
+  if (!assessment) throw new Error('输入检查服务没有返回有效结果')
+  return assessment
+}
+
+async function releaseNeedsInputJob() {
+  const jobId = currentJobId.value
+  localStorage.removeItem(JOB_STORAGE_KEY)
+  currentJobId.value = null
+  if (!jobId) return
+  localStorage.setItem(JOB_CONSUMED_KEY, jobId)
+  await fetch(`/api/ai/jobs/${jobId}/consume`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${localStorage.getItem('jmall-token')}` },
+  }).catch(() => {})
+}
+
+async function checkInputOnly() {
+  if (assessmentLoading.value || agentLoading.value) return
+  assessmentLoading.value = true
+  agentActive.value = true
+  const request = buildAgentRequest()
+  const snapshot = JSON.stringify(request)
+  try {
+    const assessment = await preflightInputAssessment(request)
+    if (JSON.stringify(buildAgentRequest()) !== snapshot) {
+      ElMessage.info('表单已变化，请重新检查最新信息')
+      return
+    }
+    inputAssessment.value = assessment
+    if (assessment.ready) ElMessage.success('信息已达到生成门槛；本次仅检查，未启动模型或扣费')
+  } catch (error: any) {
+    ElMessage.error(error?.message || '信息检查失败，请稍后重试')
+  } finally { assessmentLoading.value = false }
+}
+
 // ===== AI Agent Orchestration =====
 async function triggerAgent() {
+  if (agentLoading.value || assessmentLoading.value) return
   if (!form.title) {
     ElMessage.warning('请先填写商品名称')
     return
@@ -621,17 +1018,24 @@ async function triggerAgent() {
   agentLoading.value = true
   agentDemoMode.value = false
   agentComplete.value = false
+  lastCompletedGenerationSnapshot.value = null
   agentCompleteSummary.value = ''
   agentCostStats.value = ''
   agentTokenBreakdown.value = []
-  agentStatus.value = '🤖 Agent 团队正在启动...'
+  agentStatus.value = '🧩 正在检查商品信息是否完整...'
+  inputAssessment.value = null
 
   // Reset
   marketInsights.value = null
   stylePreviews.value = {}
+  generatedPlatformStyle.value = null
+  platformSkillMeta.value = null
+  platformSwitchPending.value = null
+  delete aiDraftMeta.value.platform_switch_pending
   complianceResult.value = null
   agentFullData.value = null
-  generatedImage.value = ''
+  imageCandidates.value = []
+  imageSearchMessage.value = ''
   ragQuality.value = null
   marketResearchDetail.value = ''
   ragDetail.value = ''
@@ -642,7 +1046,34 @@ async function triggerAgent() {
   for (const stage of stageList) {
     agentStages.value[stage.key] = 'pending'
   }
+  agentStages.value['input_assessment'] = 'running'
+
+  const requestPayload = buildAgentRequest()
+  try {
+    inputAssessment.value = await preflightInputAssessment(requestPayload)
+    agentStages.value['input_assessment'] = 'completed'
+  } catch (e: any) {
+    agentStages.value['input_assessment'] = 'error'
+    agentErrors.value['input_assessment'] = e.message || '输入检查服务不可用'
+    agentLoading.value = false
+    agentComplete.value = true
+    agentCompleteSummary.value = '无法确认商品信息是否完整，完整 Agent 未启动'
+    agentStatus.value = '❌ 商品信息检查失败'
+    ElMessage.error('商品信息检查失败，未启动 Agent，也不会扣除 Agent 使用金币')
+    return
+  }
+
+  if (!inputAssessment.value.ready) {
+    agentLoading.value = false
+    agentComplete.value = true
+    agentCompleteSummary.value = '商品信息尚未形成完整闭环，其他 Agent 未启动，也不会扣除 Agent 使用金币'
+    agentStatus.value = '🧩 请根据右侧问题补充信息'
+    ElMessage.warning(inputAssessment.value.questions[0] || '请先补充商品信息，再启动 Agent')
+    return
+  }
+
   agentStages.value['parse_intent'] = 'running'
+  agentStatus.value = '🤖 信息检查通过，Agent 团队正在启动...'
 
   try {
     const response = await fetch('/api/ai/orchestrate/stream', {
@@ -651,20 +1082,7 @@ async function triggerAgent() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('jmall-token')}`,
       },
-      body: JSON.stringify({
-        productInfo: {
-          title: form.title,
-          category: form.category || '其他',
-          description: form.description,
-          price: form.priceYuan,
-          specifications: form.specifications,
-          target_audience: form.targetAudience,
-          usage_scenarios: form.usageScenarios,
-        },
-        targetStyle: form.style,
-        knowledgeBaseId: knowledgeBaseId.value || undefined,
-        productDraftId: isEdit.value ? Number(route.params.id) : undefined,
-      }),
+      body: JSON.stringify(requestPayload),
     })
 
     if (!response.ok) {
@@ -704,7 +1122,15 @@ async function triggerAgent() {
             }
 
             if (eventName === 'agent_progress' || !eventName) {
-              const agent = data.agent
+              const agent = data.agent === 'input_validation' ? 'input_assessment' : data.agent
+
+              const assessment = normalizeInputAssessment(data.input_assessment || data.inputAssessment)
+              if (assessment) {
+                inputAssessment.value = assessment
+                agentStatus.value = assessment.ready
+                  ? '🤖 信息检查通过，Agent 团队正在执行...'
+                  : '🧩 商品信息不足，其他 Agent 已停止'
+              }
 
               // Mark completed stage
               if (agent && agentStages.value[agent] !== undefined) {
@@ -719,7 +1145,7 @@ async function triggerAgent() {
                 }
               }
               // Mark next stage as running
-              markNextRunning()
+              if (agent !== 'input_assessment') markNextRunning()
 
               // Market insights
               if (data.market_insights) {
@@ -748,7 +1174,10 @@ async function triggerAgent() {
               if (data.style_previews || data.copy) {
                 const sp = data.style_previews || data.copy
                 mergeStylePreviews(sp)
-                const ptCount = (sp.adapted_selling_points || sp.selling_points || []).length
+                const currentPreview = generatedPlatformStyle.value
+                  ? stylePreviews.value[generatedPlatformStyle.value]
+                  : sp
+                const ptCount = (currentPreview?.adapted_selling_points || currentPreview?.selling_points || []).length
                 copyDetail.value = ptCount > 0 ? `${ptCount}个卖点` : ''
               }
 
@@ -771,8 +1200,28 @@ async function triggerAgent() {
             }
 
             if (eventName === 'orchestration_complete') {
+              const fr = data.final_result || data
+              const status = fr?.overall_status || 'success'
+              const finalAssessment = normalizeInputAssessment(fr?.input_assessment || data.input_assessment)
+              if (finalAssessment) inputAssessment.value = finalAssessment
+              agentFullData.value = fr
+
+              if (status === 'needs_input' || status === 'insufficient_input') {
+                agentStatus.value = '🧩 商品信息不足，完整 Agent 未启动'
+                agentStages.value['input_assessment'] = 'completed'
+                for (const stage of stageList) {
+                  if (stage.key !== 'input_assessment') agentStages.value[stage.key] = 'pending'
+                }
+                agentCompleteSummary.value = '请补充右侧问题后重试；市场调研、RAG、文案、审核和风格 Agent 均未运行'
+                agentComplete.value = true
+                agentLoading.value = false
+                await releaseNeedsInputJob()
+                ElMessage.warning(inputAssessment.value?.questions[0] || '商品信息不足，请补充后重试')
+                eventName = ''
+                continue
+              }
+
               agentStatus.value = '✅ Agent 团队完成任务!'
-              agentFullData.value = data.final_result || data
 
               // Mark all pending stages as completed
               for (const stage of stageList) {
@@ -782,8 +1231,6 @@ async function triggerAgent() {
               }
 
               // Completion summary
-              const fr = data.final_result || data
-              const status = fr?.overall_status || 'success'
               const statusMap: Record<string, string> = {
                 success: '所有Agent任务已成功完成，表单已自动填充',
                 ready_with_warnings: 'Agent任务完成（有轻微警告），请检查后发布',
@@ -799,11 +1246,11 @@ async function triggerAgent() {
               }
 
               // Auto-fill from final result
-              if (fr?.style_adaptation?.target_style) {
-                form.style = fr.style_adaptation.target_style
-              }
-              if (fr?.copy) {
-                const copy = fr.copy
+              const normalizedFinal = applyPlatformResultMetadata(fr)
+              const hasUnifiedFinalDraft = Boolean(fr?.style_adaptation?.draft || fr?.draft)
+              const finalDraft = normalizedFinal?.draft || fr?.copy
+              if (finalDraft) {
+                const copy = finalDraft
                 if (copy.adapted_title || (copy.titles?.[0])) {
                   const bestTitle = copy.adapted_title || copy.titles[0]
                   form.title = bestTitle
@@ -816,10 +1263,26 @@ async function triggerAgent() {
                   aiFields.sellingPoints = publishablePoints
                   aiFields.aiSellingPoints = JSON.stringify(publishablePoints)
                 }
-                fillExtendedCopy(copy)
+                fillExtendedCopy(copy, hasUnifiedFinalDraft)
                 const selectedPreview = selectedPreviewFromResult(fr, copy)
-                mergeConfirmationItemsIntoSpecifications(copy, String(selectedPreview?.adapted_detail || selectedPreview?.detail || ''))
+                mergeConfirmationItemsIntoSpecifications(
+                  copy,
+                  String(selectedPreview?.adapted_detail || selectedPreview?.detail || ''),
+                  hasUnifiedFinalDraft,
+                )
                 applyGeneratedDescription(selectedPreview, copy)
+              }
+              if (normalizedFinal?.draft) {
+                agentFullData.value = {
+                  ...fr,
+                  copy: normalizedFinal.draft,
+                  draft: normalizedFinal.draft,
+                  style_adaptation: normalizedFinal.style_adaptation,
+                  generation_metadata: {
+                    ...(fr?.generation_metadata || {}),
+                    ...normalizedFinal.generation_metadata,
+                  },
+                }
               }
               if (fr?.market_insights) {
                 marketInsights.value = mapMarketInsights(fr.market_insights)
@@ -828,14 +1291,15 @@ async function triggerAgent() {
               if (fr?.compliance) {
                 aiFields.complianceResult = JSON.stringify(fr.compliance)
               }
-              if (fr?.style_adaptation) {
+              // applyPlatformResultMetadata has already filtered legacy
+              // previews to the selected target and persisted Skill metadata.
+              if (!normalizedFinal?.target_style && fr?.style_adaptation) {
                 mergeStylePreviews(fr.style_adaptation)
-                aiFields.aiStylePreviews = JSON.stringify(fr.style_adaptation)
-                if (fr.style_adaptation.target_style) {
-                  form.style = fr.style_adaptation.target_style
-                  aiFields.style = true
-                }
               }
+
+              // All generated fields have now been applied. Capture the
+              // post-generation form state for Image Scout's stale-data gate.
+              lastCompletedGenerationSnapshot.value = buildImageSearchSnapshot()
 
               if (status === 'partial_success' || status === 'needs_revision') {
                 ElMessage.warning('AI 已降级完成，请核实标红步骤与待确认内容后发布')
@@ -918,26 +1382,57 @@ function loadPlatformDemoData() {
     suggestions: ['可先完善商品真实规格、适用场景与售后信息，稍后重试'],
   }
 
-  // Platform-specific style previews
-  const previews: Record<string, any> = {}
+  // Only expose the requested platform. The fallback is a local demo
+  // template, so it intentionally carries no Skill id or version.
+  const selectedStyle = form.style
+  const pd = getPlatformDemoData(selectedStyle)
   const merchantHighlights = form.description
     .split(/[\n。；;]+/)
     .map(item => item.trim())
     .filter(item => item && !isMerchantConfirmation(item))
     .slice(0, 5)
-  for (const s of ['pinduoduo', 'taobao', 'jd', 'suning', 'xiaohongshu']) {
-    const pd = getPlatformDemoData(s)
-    const title = `${pd.titlePrefix}${form.title || '商品'}`
-    const points = merchantHighlights.length > 0 ? merchantHighlights : pd.selling_points
-    const detail = form.description || `请补充「${form.title || '商品'}」的真实规格、特点、使用场景与售后信息。`
-    previews[s] = {
-      adapted_title: title,
-      adapted_selling_points: points,
-      adapted_detail: detail,
-      style_notes: pd.styleNote,
-    }
+  const title = `${pd.titlePrefix}${form.title || '商品'}`
+  const points = merchantHighlights.length > 0 ? merchantHighlights : pd.selling_points
+  const detail = form.description || `请补充「${form.title || '商品'}」的真实规格、特点、使用场景与售后信息。`
+  const demoDraft = {
+    titles: [title],
+    selling_points: points,
+    detail_copy: detail,
+    subtitle: `${category}商品信息待完善`,
+    price_suggestion: null,
+    specifications: ['请补充可核验规格'],
+    target_audience: '请根据真实适用范围补充',
+    usage_scenarios: ['请根据真实用途补充'],
+    seo_keywords: [form.title, category].filter(Boolean),
+    promotion_copy: `${title}，价格与优惠以商家实际设置为准。`,
+    short_video_script: '',
+    pending_confirmations: ['这是安全降级演示模板，不代表实际平台 Skill 生成结果'],
   }
-  stylePreviews.value = previews
+  const demoAdaptation = {
+    target_style: selectedStyle,
+    adapted_title: title,
+    adapted_selling_points: points,
+    adapted_detail: detail,
+    draft: demoDraft,
+    style_notes: `${pd.styleNote} 当前为演示降级模板，无实际平台 Skill ID/版本。`,
+    platform_skill_id: null,
+    platform_skill_version: null,
+    pending_confirmations: demoDraft.pending_confirmations,
+    fallback: true,
+  }
+  const demoResult = filterSinglePlatformResult({
+    style_adaptation: demoAdaptation,
+    generation_metadata: {
+      target_style: selectedStyle,
+      platform_skill_id: null,
+      platform_skill_version: null,
+      fallback: true,
+    },
+  }, selectedStyle)
+  stylePreviews.value = { [selectedStyle]: demoResult.style_adaptation }
+  generatedPlatformStyle.value = selectedStyle
+  platformSkillMeta.value = demoResult.generation_metadata
+  platformSwitchPending.value = null
 
   // Compliance
   complianceResult.value = {
@@ -951,22 +1446,20 @@ function loadPlatformDemoData() {
   // Full data
   agentFullData.value = {
     product_title: form.title,
-    copy: {
-      titles: previews[form.style]?.adapted_title ? [previews[form.style].adapted_title] : [form.title],
-      selling_points: previews[form.style]?.adapted_selling_points || [],
-      detail_copy: previews[form.style]?.adapted_detail || form.description,
-      subtitle: `${category}商品信息待完善`,
-      price_suggestion: null,
-      specifications: ['请补充可核验规格'],
-      target_audience: '请根据真实适用范围补充',
-      usage_scenarios: ['请根据真实用途补充'],
-      seo_keywords: [form.title, category].filter(Boolean),
-      promotion_copy: `${previews[form.style]?.adapted_title || form.title}，价格与优惠以商家实际设置为准。`,
-    },
-    style_adaptation: { target_style: form.style, style_notes: getStyleLabel(form.style) },
+    copy: demoResult.draft,
+    draft: demoResult.draft,
+    style_adaptation: demoResult.style_adaptation,
+    generation_metadata: demoResult.generation_metadata,
     overall_status: 'needs_revision',
   }
-  fillExtendedCopy(agentFullData.value.copy)
+  fillExtendedCopy(demoResult.draft, true)
+  aiFields.aiStylePreviews = JSON.stringify(buildPlatformDraftPayload(
+    demoResult,
+    demoResult.generation_metadata,
+    demoResult.draft,
+    selectedStyle,
+  ))
+  aiDraftMeta.value = mergePlatformDraftMeta(aiDraftMeta.value, demoResult, selectedStyle)
 }
 
 function asTextList(value: unknown): string {
@@ -1015,6 +1508,14 @@ function cleanPublishableBlock(value: string): string {
     .join('\n')
 }
 
+function cleanUnifiedDraftDetail(value: string): string {
+  return value
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(line => line && (/^【[^】]+】$/.test(line) || !isMerchantConfirmation(line)))
+    .join('\n')
+}
+
 function getPublishableSellingPoints(preview: any, copy?: any): string[] {
   const candidates = preview?.adapted_selling_points
     || preview?.selling_points
@@ -1026,6 +1527,12 @@ function getPublishableSellingPoints(preview: any, copy?: any): string[] {
 }
 
 function buildPublishableDetail(preview: any, copy?: any): string {
+  const unifiedDraft = preview?.draft || copy?.draft
+  if (unifiedDraft && Object.prototype.hasOwnProperty.call(unifiedDraft, 'detail_copy')) {
+    // M4 platform Skills own the complete document structure. Keep headings
+    // such as 商品信息/规格参数 intact; only drop explicit confirmation lines.
+    return cleanUnifiedDraftDetail(String(unifiedDraft.detail_copy || ''))
+  }
   const rawDetail = String(
     preview?.adapted_detail
     || preview?.detail
@@ -1059,12 +1566,48 @@ function buildPublishableDetail(preview: any, copy?: any): string {
 }
 
 function selectedPreviewFromResult(result: any, copy: any): any {
-  const adaptation = result?.style_adaptation || {}
-  const selectedStyle = adaptation.target_style || form.style
-  return adaptation.previews?.[selectedStyle]
-    || adaptation.platform_previews?.[selectedStyle]
-    || adaptation
-    || copy
+  const adaptation = result?.style_adaptation || result || {}
+  const selectedStyle = adaptation.target_style || result?.generation_metadata?.target_style || form.style
+  if (!result?.style_adaptation?.draft && !result?.draft) {
+    return adaptation.previews?.[selectedStyle]
+      || adaptation.platform_previews?.[selectedStyle]
+      || adaptation
+      || copy
+  }
+  const normalized = filterSinglePlatformResult(result, selectedStyle)
+  return normalized.style_adaptation || normalized.draft || copy
+}
+
+function applyPlatformResultMetadata(result: any) {
+  if (!result) return null
+  const requestedStyle = result?.style_adaptation?.target_style
+    || result?.generation_metadata?.target_style
+    || result?.target_style
+    || form.style
+  const normalized = filterSinglePlatformResult(result, requestedStyle)
+  if (!normalized.target_style) return normalized
+
+  mergeStylePreviews(result, normalized.target_style)
+  form.style = normalized.target_style as PlatformStyle
+  aiFields.style = true
+  generatedPlatformStyle.value = normalized.target_style
+  platformSkillMeta.value = normalized.generation_metadata
+  platformSwitchPending.value = null
+  delete aiDraftMeta.value.platform_switch_pending
+
+  const persisted = buildPlatformDraftPayload(
+    result,
+    result?.generation_metadata,
+    result?.draft || result?.copy || normalized.draft,
+    normalized.target_style,
+  )
+  aiFields.aiStylePreviews = JSON.stringify(persisted)
+  aiDraftMeta.value = mergePlatformDraftMeta(
+    aiDraftMeta.value,
+    persisted,
+    normalized.target_style,
+  )
+  return normalized
 }
 
 function applyGeneratedDescription(preview: any, copy: any) {
@@ -1075,68 +1618,157 @@ function applyGeneratedDescription(preview: any, copy: any) {
   aiFields.aiDetail = detail
 }
 
-function mergeConfirmationItemsIntoSpecifications(copy: any, detail = '') {
+function mergeConfirmationItemsIntoSpecifications(copy: any, detail = '', authoritativeDraft = false) {
+  // Pending confirmations are evidence gaps, not product facts. They remain
+  // in aiDraftMeta/confirmation panel and never become publishable specs for
+  // the unified platform draft. Keep the old extraction only for legacy data.
+  // fillExtendedCopy already replaced specifications from the unified draft.
+  // Re-merging its array with the rendered comma-joined text duplicates it
+  // on both stream completion and recovery. Only legacy data needs merging.
+  if (authoritativeDraft) return
   const operationalItems = [
-    ...toTextItems(copy?.specifications),
-    ...toTextItems(copy?.pending_confirmations),
-    ...toTextItems(extractDetailSection(detail, '规格参数')),
-    ...toTextItems(extractDetailSection(detail, '购买前核对')),
-  ]
+      ...toTextItems(copy?.specifications),
+      ...toTextItems(copy?.pending_confirmations),
+      ...toTextItems(extractDetailSection(detail, '规格参数')),
+      ...toTextItems(extractDetailSection(detail, '购买前核对')),
+    ]
   const merged = uniqueTextItems(form.specifications, operationalItems)
   if (merged.length > 0) form.specifications = merged.join('，')
 }
 
-function fillExtendedCopy(copy: any) {
+function fillExtendedCopy(copy: any, authoritativeDraft = false) {
   if (!copy) return
-  form.subtitle = String(copy.subtitle || form.subtitle || '')
-  mergeConfirmationItemsIntoSpecifications(copy, String(copy.adapted_detail || copy.detail_copy || ''))
-  form.targetAudience = String(copy.target_audience || copy.targetAudience || form.targetAudience || '')
-  form.usageScenarios = asTextList(copy.usage_scenarios || copy.usageScenarios) || form.usageScenarios
-  form.seoKeywords = asTextList(copy.seo_keywords || copy.seoKeywords) || form.seoKeywords
-  form.promotionCopy = String(copy.promotion_copy || copy.promotionCopy || form.promotionCopy || '')
-  const suggested = Number(copy.price_suggestion ?? copy.priceSuggestion)
-  aiPriceSuggestionYuan.value = Number.isFinite(suggested) && suggested > 0 ? suggested : null
+  const has = (...keys: string[]) => keys.some(key => Object.prototype.hasOwnProperty.call(copy, key))
+  const value = (...keys: string[]) => keys.find(key => copy[key] !== undefined)
+  const canApply = (raw: unknown) => authoritativeDraft || (raw !== undefined && raw !== null && String(raw).trim() !== '')
+  if (has('subtitle') && canApply(copy.subtitle)) form.subtitle = String(copy.subtitle ?? '')
+  if (has('specifications') && canApply(copy.specifications)) form.specifications = asTextList(copy.specifications)
+  mergeConfirmationItemsIntoSpecifications(
+    copy,
+    String(copy.adapted_detail || copy.detail_copy || ''),
+    authoritativeDraft,
+  )
+  if (has('target_audience', 'targetAudience')) {
+    const key = value('target_audience', 'targetAudience')
+    if (canApply(key ? copy[key] : undefined)) form.targetAudience = String(key ? copy[key] ?? '' : '')
+  }
+  if (has('usage_scenarios', 'usageScenarios')) {
+    const key = value('usage_scenarios', 'usageScenarios')
+    if (canApply(key ? copy[key] : undefined)) form.usageScenarios = asTextList(key ? copy[key] : [])
+  }
+  if (has('seo_keywords', 'seoKeywords')) {
+    const key = value('seo_keywords', 'seoKeywords')
+    if (canApply(key ? copy[key] : undefined)) form.seoKeywords = asTextList(key ? copy[key] : [])
+  }
+  if (has('promotion_copy', 'promotionCopy')) {
+    const key = value('promotion_copy', 'promotionCopy')
+    if (canApply(key ? copy[key] : undefined)) form.promotionCopy = String(key ? copy[key] ?? '' : '')
+  }
+  if (has('price_suggestion', 'priceSuggestion')) {
+    const key = value('price_suggestion', 'priceSuggestion')
+    if (canApply(key ? copy[key] : undefined)) {
+      const suggested = Number(key ? copy[key] : null)
+      aiPriceSuggestionYuan.value = Number.isFinite(suggested) && suggested > 0 ? suggested : null
+    }
+  }
 }
 
 function buildAiStylePayload() {
-  let styleAdaptation: any = null
+  let storedPayload: any = null
   if (aiFields.aiStylePreviews) {
-    try { styleAdaptation = JSON.parse(aiFields.aiStylePreviews) } catch { styleAdaptation = null }
+    try { storedPayload = JSON.parse(aiFields.aiStylePreviews) } catch { storedPayload = null }
   }
-  return {
-    style_adaptation: styleAdaptation,
-    extended_content: {
-      subtitle: form.subtitle,
-      price_suggestion: aiPriceSuggestionYuan.value,
-      specifications: form.specifications.split(/[,，\n]/).map(v => v.trim()).filter(Boolean),
-      target_audience: form.targetAudience,
-      usage_scenarios: form.usageScenarios.split(/[,，\n]/).map(v => v.trim()).filter(Boolean),
-      seo_keywords: form.seoKeywords.split(/[,，\n]/).map(v => v.trim()).filter(Boolean),
-      promotion_copy: form.promotionCopy,
-    },
+  const extendedContent = markEditablePlatformContent({
+    // This snapshot reflects the editable form at save time. It lets a
+    // reload restore merchant edits while the Skill draft remains the
+    // immutable/generated preview source.
+    subtitle: form.subtitle,
+    price_suggestion: aiPriceSuggestionYuan.value,
+    specifications: form.specifications.split(/[,，\n]/).map(v => v.trim()).filter(Boolean),
+    target_audience: form.targetAudience,
+    usage_scenarios: form.usageScenarios.split(/[,，\n]/).map(v => v.trim()).filter(Boolean),
+    seo_keywords: form.seoKeywords.split(/[,，\n]/).map(v => v.trim()).filter(Boolean),
+    promotion_copy: form.promotionCopy,
+  })
+  const source = storedPayload || (
+    generatedPlatformStyle.value && stylePreviews.value[generatedPlatformStyle.value]
+      ? { style_adaptation: stylePreviews.value[generatedPlatformStyle.value] }
+      : null
+  )
+  if (!source) {
+    return {
+      style_adaptation: null,
+      draft: normalizePlatformDraft(extendedContent),
+      extended_content: extendedContent,
+    }
   }
+  return buildPlatformDraftPayload(
+    source,
+    storedPayload?.generation_metadata || platformSkillMeta.value,
+    extendedContent,
+    generatedPlatformStyle.value || storedPayload?.style_adaptation?.target_style || form.style,
+  )
+}
+
+function handlePlatformChange(style: string) {
+  const generatedStyle = generatedPlatformStyle.value
+  if (!generatedStyle || style === generatedStyle) {
+    if (style === generatedStyle) {
+      platformSwitchPending.value = null
+      delete aiDraftMeta.value.platform_switch_pending
+    }
+    return
+  }
+  platformSwitchPending.value = { from: generatedStyle, to: style }
+  aiDraftMeta.value.platform_switch_pending = {
+    from: generatedStyle,
+    to: style,
+    message: '切换平台后需要重新生成，当前表单仍保留原平台文案',
+  }
+  ElMessage.warning(`已切换到「${getStyleLabel(style)}」，当前仍保留「${getStyleLabel(generatedStyle)}」文案，请重新生成`)
 }
 
 function applyStylePreview(style: string) {
   form.style = style as PlatformStyle
   const preview = stylePreviews.value[style]
-  if (preview) {
-    const copy = agentFullData.value?.copy || {}
+  if (preview && (!generatedPlatformStyle.value || generatedPlatformStyle.value === style)) {
+    generatedPlatformStyle.value = style
+    platformSkillMeta.value = extractPlatformSkillMetadata(preview, style)
+    platformSwitchPending.value = null
+    delete aiDraftMeta.value.platform_switch_pending
+    const copy = preview.draft || agentFullData.value?.draft || agentFullData.value?.copy || {}
     if (preview.adapted_title) {
       form.title = preview.adapted_title
       aiFields.title = true
     }
-    fillExtendedCopy(copy)
-    mergeConfirmationItemsIntoSpecifications(copy, String(preview.adapted_detail || preview.detail || ''))
+    fillExtendedCopy(copy, true)
+    mergeConfirmationItemsIntoSpecifications(copy, String(preview.adapted_detail || preview.detail || ''), true)
     applyGeneratedDescription(preview, copy)
     const publishablePoints = getPublishableSellingPoints(preview, copy)
     if (publishablePoints.length > 0) {
       aiFields.sellingPoints = publishablePoints
       aiFields.aiSellingPoints = JSON.stringify(publishablePoints)
     }
-    ElMessage.success(`已应用「${getStyleLabel(style)}」文案，待确认信息已归入规格参数`)
+    aiFields.aiStylePreviews = JSON.stringify(buildPlatformDraftPayload(
+      { style_adaptation: preview, draft: copy },
+      platformSkillMeta.value,
+      copy,
+      style,
+    ))
+    aiDraftMeta.value = mergePlatformDraftMeta(aiDraftMeta.value, preview, style)
+    agentFullData.value = {
+      ...(agentFullData.value || {}),
+      copy,
+      draft: copy,
+      style_adaptation: preview,
+      generation_metadata: extractPlatformSkillMetadata(preview, style),
+    }
+    // Applying an already generated preview writes AI content into the form;
+    // refresh the search snapshot only after those writes are complete.
+    lastCompletedGenerationSnapshot.value = buildImageSearchSnapshot()
+    ElMessage.success(`已应用「${getStyleLabel(style)}」文案，待确认信息已记录在待确认区域`)
   } else {
-    ElMessage.success(`已切换为「${getStyleLabel(style)}」风格`)
+    handlePlatformChange(style)
   }
 }
 
@@ -1151,65 +1783,159 @@ function beforeImageUpload(file: File) {
 
 function onImageSuccess(response: any) {
   if (response.code === 10000) {
+    imageSearchRequestId.value += 1
+    imageSearchLoading.value = false
     form.images.push(response.data as string)
+    imageCandidates.value = []
     ElMessage.success('图片上传成功')
+    editorFunnel.imageResolved()
   } else {
     ElMessage.error(response.msg || '上传失败')
   }
 }
 
 function onImageError() { ElMessage.error('图片上传失败，请检查网络') }
-function removeImage(index: number) { form.images.splice(index, 1) }
+function removeImage(index: number) {
+  const removed = form.images[index]
+  form.images.splice(index, 1)
+  if (!form.images.length) editorFunnel.noImage()
+  const selected = aiDraftMeta.value.selected_image_source as Record<string, unknown> | undefined
+  if (selected?.original_url === removed) delete aiDraftMeta.value.selected_image_source
+}
 
-// ===== Save =====
-async function saveProduct() {
-  if (!form.title.trim() || !form.category || !form.priceYuan || form.priceYuan <= 0) {
-    ElMessage.warning('发布前请填写商品名称、品类和大于 0 的基础价格')
-    return
+// ===== Draft and publish =====
+function buildProductPayload() {
+  aiDraftMeta.value.input_snapshot = buildAgentRequest().productInfo
+  if (inputAssessment.value) aiDraftMeta.value.input_assessment = inputAssessment.value
+  const pending = toTextItems(agentFullData.value?.copy?.pending_confirmations)
+  if (agentFullData.value?.copy && pending.length) aiDraftMeta.value.pending_confirmations = pending
+  else if (agentFullData.value?.copy) delete aiDraftMeta.value.pending_confirmations
+
+  const stylePayload = buildAiStylePayload()
+  if (generatedPlatformStyle.value && stylePayload.style_adaptation) {
+    aiDraftMeta.value = mergePlatformDraftMeta(
+      aiDraftMeta.value,
+      stylePayload,
+      generatedPlatformStyle.value,
+    )
   }
+
+  const payload: any = {
+    title: form.title.trim(),
+    subtitle: form.subtitle,
+    category: form.category,
+    description: form.description,
+    price: Math.max(0, Math.round((Number(form.priceYuan) || 0) * 100)),
+    style: form.style,
+    images: form.images.length > 0 ? JSON.stringify(form.images) : null,
+    aiDraftMeta: JSON.stringify(aiDraftMeta.value),
+  }
+  if (aiFields.aiTitle) payload.aiTitle = aiFields.aiTitle
+  if (aiFields.aiSellingPoints) payload.aiSellingPoints = aiFields.aiSellingPoints
+  if (aiFields.aiDetail || aiFields.description) payload.aiDetail = aiFields.aiDetail || form.description
+  payload.aiStylePreviews = JSON.stringify(stylePayload)
+  if (aiFields.marketInsights) payload.marketInsights = aiFields.marketInsights
+  if (aiFields.complianceResult) payload.complianceResult = aiFields.complianceResult
+  return payload
+}
+
+function currentProductId(): number | null {
+  const routeId = Number(route.params.id)
+  return Number.isFinite(routeId) && routeId > 0 ? routeId : savedDraftId.value
+}
+
+async function persistCurrentProduct() {
+  const id = currentProductId()
+  const saved = id
+    ? await productApi.update(id, buildProductPayload())
+    : await productApi.create(buildProductPayload())
+  savedDraftId.value = saved.id
+  productStatus.value = saved.status
+  if (saved.status === 'draft') editorFunnel.saved()
+  return saved
+}
+
+function blockersFromError(error: any): PublishBlocker[] {
+  const data = error?.data
+  return Array.isArray(data?.publish_blockers) ? data.publish_blockers : []
+}
+
+async function consumeCurrentJob() {
+  if (!currentJobId.value) return
+  await fetch(`/api/ai/jobs/${currentJobId.value}/consume`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${localStorage.getItem('jmall-token')}` },
+  }).catch(() => {})
+  localStorage.setItem(JOB_CONSUMED_KEY, currentJobId.value)
+  localStorage.removeItem(JOB_STORAGE_KEY)
+  currentJobId.value = null
+}
+
+async function saveDraft() {
+  saving.value = true
+  publishBlockers.value = []
+  try {
+    const saved = await persistCurrentProduct()
+    await consumeCurrentJob()
+    window.location.assign(`/merchant/products?notice=drafted&id=${saved.id}`)
+  } catch (error: any) {
+    ElMessage.error(error?.message || '草稿保存失败')
+  } finally { saving.value = false }
+}
+
+async function savePublishedChanges() {
+  saving.value = true
+  publishBlockers.value = []
+  try {
+    const saved = await persistCurrentProduct()
+    await consumeCurrentJob()
+    window.location.assign(`/merchant/products?notice=updated&id=${saved.id}`)
+  } catch (error: any) {
+    publishBlockers.value = blockersFromError(error)
+    ElMessage.error(publishBlockers.value[0]?.message || error?.message || '修改保存失败')
+  } finally { saving.value = false }
+}
+
+async function checkAndPublish() {
+  saving.value = true
+  publishBlockers.value = []
+  try {
+    const saved = await persistCurrentProduct()
+    if (!route.params.id) await router.replace(`/merchant/products/${saved.id}`)
+    const check = await productApi.publishCheck(saved.id)
+    publishBlockers.value = check.publish_blockers || []
+    if (!check.publishable) {
+      ElMessage.warning(publishBlockers.value[0]?.message || '商品尚未通过发布检查')
+      return
+    }
+    await ElMessageBox.confirm(
+      '发布后商品将对买家可见并可购买。确认现在发布？',
+      '确认发布',
+      { type: 'warning', confirmButtonText: '确认发布', cancelButtonText: '继续编辑' },
+    )
+    await productApi.publish(saved.id)
+    editorFunnel.published()
+    await consumeCurrentJob()
+    await router.push(`/merchant/products/${saved.id}/published`)
+  } catch (error: any) {
+    if (error === 'cancel' || error === 'close') return
+    publishBlockers.value = blockersFromError(error)
+    ElMessage.error(publishBlockers.value[0]?.message || error?.message || '发布失败')
+  } finally { saving.value = false }
+}
+
+async function unpublishAndSave() {
+  const id = currentProductId()
+  if (!id) return
   saving.value = true
   try {
-    const payload: any = {
-      title: form.title,
-      subtitle: form.subtitle,
-      category: form.category || '其他',
-      description: form.description,
-      price: Math.round(form.priceYuan * 100),
-      style: form.style,
-      images: form.images.length > 0 ? JSON.stringify(form.images) : null,
-    }
-    if (aiFields.aiTitle) payload.aiTitle = aiFields.aiTitle
-    if (aiFields.aiSellingPoints) payload.aiSellingPoints = aiFields.aiSellingPoints
-    if (aiFields.aiDetail || aiFields.description) payload.aiDetail = aiFields.aiDetail || form.description
-    payload.aiStylePreviews = JSON.stringify(buildAiStylePayload())
-    if (aiFields.marketInsights) payload.marketInsights = aiFields.marketInsights
-    if (aiFields.complianceResult) payload.complianceResult = aiFields.complianceResult
-
-    let savedProduct: any
-    if (isEdit.value) {
-      savedProduct = await productApi.update(Number(route.params.id), payload)
-    } else {
-      savedProduct = await productApi.create(payload)
-    }
-    if (currentJobId.value) {
-      await fetch(`/api/ai/jobs/${currentJobId.value}/consume`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('jmall-token')}` },
-      }).catch(() => {})
-      localStorage.setItem(JOB_CONSUMED_KEY, currentJobId.value)
-      localStorage.removeItem(JOB_STORAGE_KEY)
-      currentJobId.value = null
-    }
-    const notice = isEdit.value ? 'updated' : 'published'
-    const savedId = savedProduct?.id || route.params.id || ''
-    // This route is also the create page, so a same-route router.push would
-    // leave the old form visible. A full navigation guarantees a clean editor.
-    window.location.assign(`/merchant/products?notice=${notice}&id=${savedId}`)
-  } catch (e: any) {
-    ElMessage.error(e.message || '保存失败')
-  } finally {
-    saving.value = false
-  }
+    await productApi.unpublish(id)
+    productStatus.value = 'draft'
+    await persistCurrentProduct()
+    window.location.assign(`/merchant/products?notice=unpublished&id=${id}`)
+  } catch (error: any) {
+    ElMessage.error(error?.message || '下架失败')
+  } finally { saving.value = false }
 }
 
 // ===== Job Reconnection =====
@@ -1266,6 +1992,9 @@ async function pollJobStatus(jobId: string) {
       if ((!isEdit.value || !form.priceYuan || form.priceYuan <= 0) && Number(submitted.price) > 0) {
         form.priceYuan = Number(submitted.price)
       }
+      if (!form.specifications) form.specifications = String(submitted.specifications || '')
+      if (!form.targetAudience) form.targetAudience = String(submitted.target_audience || submitted.targetAudience || '')
+      if (!form.usageScenarios) form.usageScenarios = String(submitted.usage_scenarios || submitted.usageScenarios || '')
     }
     if (job.targetStyle || job.target_style) {
       form.style = (job.targetStyle || job.target_style) as PlatformStyle
@@ -1303,6 +2032,10 @@ async function pollJobStatus(jobId: string) {
       const rq = job.ragQuality
       ragDetail.value = `${rq.result_count ?? 0}条结果`
     }
+    const restoredAssessment = normalizeInputAssessment(
+      job.inputAssessment || job.input_assessment || job.result?.input_assessment
+    )
+    if (restoredAssessment) inputAssessment.value = restoredAssessment
     if (job.complianceResult) {
       // Handle nested structure: {compliance_result: {...}, elapsed_ms: ...}
       const cr = job.complianceResult.compliance_result || job.complianceResult
@@ -1315,17 +2048,59 @@ async function pollJobStatus(jobId: string) {
       }
     }
     // Restore style previews and copy drafts from persisted job
-    if (job.stylePreviews || job.copyDrafts) {
+    if (job.style_adaptation || job.styleAdaptation || job.stylePreviews || job.copyDrafts) {
       const sp = job.stylePreviews || job.copyDrafts
-      mergeStylePreviews(sp)
-      const ptCount = (sp.adapted_selling_points || sp.selling_points || []).length
+      const partialStyleResult = {
+        ...(job.style_adaptation || job.styleAdaptation
+          ? { style_adaptation: job.style_adaptation || job.styleAdaptation }
+          : sp || {}),
+        ...(job.generation_metadata || job.generationMetadata
+          ? { generation_metadata: job.generation_metadata || job.generationMetadata }
+          : {}),
+      }
+      mergeStylePreviews(
+        partialStyleResult,
+        job.targetStyle || job.target_style || form.style,
+      )
+      const restoredStyle = generatedPlatformStyle.value
+      const restoredPreview = restoredStyle ? stylePreviews.value[restoredStyle] : null
+      const ptCount = (restoredPreview?.adapted_selling_points || restoredPreview?.selling_points || []).length
       copyDetail.value = ptCount > 0 ? `${ptCount}个卖点` : ''
+      if (restoredStyle) {
+        aiDraftMeta.value = mergePlatformDraftMeta(
+          aiDraftMeta.value,
+          partialStyleResult,
+          restoredStyle,
+        )
+      }
     }
 
     // If job is completed, restore full result
     const jobStatus = String(job.status).toUpperCase()
     if (jobStatus === 'COMPLETED' && job.result) {
-      const fr = job.result
+      const fr = {
+        ...job.result,
+        ...(!job.result.generation_metadata && (job.generation_metadata || job.generationMetadata)
+          ? { generation_metadata: job.generation_metadata || job.generationMetadata }
+          : {}),
+      }
+      const finalStatus = String(fr?.overall_status || '')
+      const finalAssessment = normalizeInputAssessment(fr?.input_assessment)
+      if (finalAssessment) inputAssessment.value = finalAssessment
+
+      if (finalStatus === 'needs_input' || finalStatus === 'insufficient_input') {
+        agentStatus.value = '🧩 商品信息不足，完整 Agent 未启动'
+        agentComplete.value = true
+        agentLoading.value = false
+        agentStages.value['input_assessment'] = 'completed'
+        for (const stage of stageList) {
+          if (stage.key !== 'input_assessment') agentStages.value[stage.key] = 'pending'
+        }
+        agentCompleteSummary.value = '请补充右侧问题后重试；其他 Agent 均未运行'
+        await releaseNeedsInputJob()
+        return
+      }
+
       applyCostStats(job.costStats || job.cost_stats)
       agentStatus.value = '✅ Agent 团队完成任务!'
       agentFullData.value = fr
@@ -1337,11 +2112,11 @@ async function pollJobStatus(jobId: string) {
         }
       }
       // Auto-fill form from result
-      if (fr?.style_adaptation?.target_style) {
-        form.style = fr.style_adaptation.target_style
-      }
-      if (fr?.copy) {
-        const copy = fr.copy
+      const normalizedFinal = applyPlatformResultMetadata(fr)
+      const hasUnifiedFinalDraft = Boolean(fr?.style_adaptation?.draft || fr?.draft)
+      const finalDraft = normalizedFinal?.draft || fr?.copy
+      if (finalDraft) {
+        const copy = finalDraft
         if (copy.adapted_title || (copy.titles?.[0])) {
           form.title = copy.adapted_title || copy.titles[0]
           aiFields.title = true
@@ -1352,16 +2127,30 @@ async function pollJobStatus(jobId: string) {
           aiFields.sellingPoints = publishablePoints
           aiFields.aiSellingPoints = JSON.stringify(publishablePoints)
         }
-        fillExtendedCopy(copy)
+        fillExtendedCopy(copy, hasUnifiedFinalDraft)
         const selectedPreview = selectedPreviewFromResult(fr, copy)
-        mergeConfirmationItemsIntoSpecifications(copy, String(selectedPreview?.adapted_detail || selectedPreview?.detail || ''))
+        mergeConfirmationItemsIntoSpecifications(
+          copy,
+          String(selectedPreview?.adapted_detail || selectedPreview?.detail || ''),
+          hasUnifiedFinalDraft,
+        )
         applyGeneratedDescription(selectedPreview, copy)
       }
-      if (fr?.style_adaptation?.target_style) {
-        mergeStylePreviews(fr.style_adaptation)
-        form.style = fr.style_adaptation.target_style
-        aiFields.style = true
+      if (normalizedFinal?.draft) {
+        agentFullData.value = {
+          ...fr,
+          copy: normalizedFinal.draft,
+          draft: normalizedFinal.draft,
+          style_adaptation: normalizedFinal.style_adaptation,
+          generation_metadata: {
+            ...(fr?.generation_metadata || {}),
+            ...normalizedFinal.generation_metadata,
+          },
+        }
       }
+      // Recovery follows the same contract as the live SSE path: only record
+      // the snapshot after the completed result has populated the form.
+      lastCompletedGenerationSnapshot.value = buildImageSearchSnapshot()
       agentCompleteSummary.value = 'Agent 任务已完成，表单已自动填充'
       ElMessage.success('✅ Agent 任务已完成，表单已自动填充')
       return
@@ -1395,6 +2184,7 @@ async function pollJobStatus(jobId: string) {
 }
 
 onMounted(async () => {
+  editorFunnel.open(isEdit.value ? undefined : form.images.length > 0)
   const notice = String(route.query.notice || '')
   if (notice === 'published' || notice === 'updated') {
     ElMessage.success(notice === 'published' ? '商品已发布，表单已刷新' : '商品已更新，表单已刷新')
@@ -1446,20 +2236,76 @@ onMounted(async () => {
       form.description = p.description || ''
       form.priceYuan = p.price / 100
       form.style = p.style
+      productStatus.value = p.status
+      savedDraftId.value = p.id
       if (p.aiTitle) aiFields.aiTitle = p.aiTitle
       if (p.aiSellingPoints) {
         aiFields.aiSellingPoints = String(p.aiSellingPoints)
         try { aiFields.sellingPoints = JSON.parse(String(p.aiSellingPoints)) } catch { /* legacy value */ }
       }
       if (p.aiDetail) aiFields.aiDetail = p.aiDetail
+      if (p.complianceResult) {
+        aiFields.complianceResult = typeof p.complianceResult === 'string'
+          ? p.complianceResult
+          : JSON.stringify(p.complianceResult)
+      }
+      if (p.aiDraftMeta) {
+        aiDraftMeta.value = normalizeAiDraftMeta(p.aiDraftMeta)
+      }
       if (p.aiStylePreviews) {
         try {
           const stored = typeof p.aiStylePreviews === 'string' ? JSON.parse(p.aiStylePreviews) : p.aiStylePreviews
-          const extended = stored?.extended_content || {}
-          fillExtendedCopy(extended)
-          const adaptation = stored?.style_adaptation || stored
-          aiFields.aiStylePreviews = JSON.stringify(adaptation)
+          const storedMeta = extractPlatformSkillMetadata(stored, p.style)
+          const pendingSwitch = aiDraftMeta.value.platform_switch_pending as Record<string, unknown> | undefined
+          const restoredTarget = storedMeta.target_style || p.style
+          const normalized = filterSinglePlatformResult(stored, restoredTarget)
+          const hasStoredUnifiedDraft = Boolean(stored?.style_adaptation?.draft || stored?.draft)
+          // Unified draft wins over the legacy extended_content envelope.
+          const editableContent = isEditablePlatformContent(stored?.extended_content)
+            ? stored.extended_content
+            : normalized.draft || stored?.draft || stored?.extended_content || {}
+          fillExtendedCopy(editableContent, hasStoredUnifiedDraft || isEditablePlatformContent(stored?.extended_content))
+          mergeStylePreviews(stored, restoredTarget)
+          generatedPlatformStyle.value = normalized.target_style || restoredTarget
+          platformSkillMeta.value = extractPlatformSkillMetadata(
+            stored,
+            generatedPlatformStyle.value || p.style,
+          )
+          aiDraftMeta.value = mergePlatformDraftMeta(
+            aiDraftMeta.value,
+            stored,
+            generatedPlatformStyle.value || p.style,
+          )
+          if (normalized.target_style && !pendingSwitch) {
+            form.style = normalized.target_style as PlatformStyle
+          }
+          if (pendingSwitch?.from && pendingSwitch?.to) {
+            platformSwitchPending.value = {
+              from: String(pendingSwitch.from),
+              to: String(pendingSwitch.to),
+            }
+          }
+          agentFullData.value = {
+            ...(agentFullData.value || {}),
+            copy: normalized.draft,
+            draft: normalized.draft,
+            style_adaptation: normalized.style_adaptation,
+            generation_metadata: normalized.generation_metadata,
+          }
+          aiFields.aiStylePreviews = JSON.stringify(buildPlatformDraftPayload(
+            stored,
+            stored?.generation_metadata || platformSkillMeta.value,
+            stored?.extended_content || normalized.draft,
+            generatedPlatformStyle.value || restoredTarget,
+          ))
         } catch { /* legacy value */ }
+      }
+      if (!platformSkillMeta.value && p.aiDraftMeta) {
+        const restoredMeta = extractPlatformSkillMetadata(aiDraftMeta.value, p.style)
+        if (restoredMeta.target_style || restoredMeta.platform_skill_id || restoredMeta.platform_skill_version) {
+          platformSkillMeta.value = restoredMeta
+          generatedPlatformStyle.value = restoredMeta.target_style || p.style
+        }
       }
       if (p.images) {
         const storedImages = p.images
@@ -1469,6 +2315,7 @@ onMounted(async () => {
           form.images = typeof storedImages === 'string' ? storedImages.split(',').filter(Boolean) : []
         }
       }
+      if (!form.images.length) editorFunnel.noImage()
     }).catch(() => {})
   }
 })
@@ -1477,13 +2324,32 @@ onMounted(async () => {
 <style scoped>
 .product-editor { padding: 24px; max-width: 1400px; }
 .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.editor-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.image-search-action { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; max-width: 280px; }
+.image-search-action-hint { color: #909399; font-size: 12px; line-height: 1.4; }
 .editor-card { border-radius: 12px; }
+.input-guidance { margin: 8px 0 0; color: #606266; font-size: 12px; line-height: 1.6; }
 .agent-panel { position: sticky; top: 80px; }
 .agent-panel-header { display: flex; justify-content: space-between; align-items: center; }
 .agent-loading { text-align: center; padding: 24px; }
 .agent-status { font-size: 13px; color: #666; margin-top: 8px; }
+.platform-skill-meta { margin: 0 0 12px; color: #606266; font-size: 12px; line-height: 1.5; }
+.pending-confirmations { margin: 10px 0 14px; padding: 10px 12px; border: 1px solid #f3d19e; border-radius: 8px; background: #fdf6ec; color: #7c5a1b; font-size: 12px; line-height: 1.5; }
+.pending-confirmations ul { margin: 6px 0 0; padding-left: 18px; }
 .agent-section { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #eee; }
 .agent-section h4 { margin: 0 0 12px; font-size: 15px; }
+.input-assessment { padding: 12px; border: 1px solid #e4e7ed; border-radius: 10px; }
+.assessment-ready { background: #f0f9eb; border-color: #b3e19d; }
+.assessment-needs-input { background: #fdf6ec; border-color: #f3d19e; }
+.assessment-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.assessment-title h4 { margin-bottom: 8px; }
+.assessment-title strong { color: #409eff; }
+.assessment-summary { margin: 10px 0; color: #606266; font-size: 12px; line-height: 1.6; }
+.assessment-group { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.assessment-label { width: 100%; color: #606266; font-size: 12px; font-weight: 600; }
+.assessment-questions { margin-top: 12px; color: #303133; font-size: 13px; }
+.assessment-questions ol { margin: 6px 0 0; padding-left: 20px; }
+.assessment-questions li { margin-bottom: 6px; line-height: 1.5; }
 .trend-tags, .hot-keywords { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
 .price-range { margin-top: 8px; font-size: 13px; color: #666; }
 .market-suggestions { margin-top: 8px; }
@@ -1500,7 +2366,6 @@ onMounted(async () => {
 .image-area { width: 100%; }
 .image-list { display: flex; flex-wrap: wrap; gap: 12px; }
 .image-item { position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid #e4e7ed; }
-.image-item.generated { border: 2px dashed #67c23a; }
 .image-item.fallback { border: 2px dashed #c0c4cc; opacity: 0.8; }
 .uploaded-image { width: 100%; height: 100%; object-fit: cover; }
 .image-actions { position: absolute; top: 4px; right: 4px; opacity: 0; transition: opacity 0.2s; }
@@ -1515,6 +2380,24 @@ onMounted(async () => {
 }
 .upload-placeholder:hover { border-color: #409eff; color: #409eff; }
 .upload-hint { font-size: 12px; color: #999; margin: 8px 0 0; }
+.image-scout { margin-top: 16px; padding: 14px; border: 1px solid #d9ecff; border-radius: 10px; background: #f5faff; }
+.image-scout-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.image-scout-header p { margin: 4px 0 0; color: #606266; font-size: 12px; line-height: 1.5; }
+.image-search-message { margin: 10px 0 0; color: #606266; font-size: 12px; }
+.image-candidates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.image-candidate-card { min-width: 0; overflow: hidden; border: 1px solid #dcdfe6; border-radius: 10px; background: #fff; }
+.candidate-thumbnail { width: 100%; aspect-ratio: 1; display: block; object-fit: cover; background: #f5f7fa; }
+.candidate-body { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 10px; }
+.candidate-body strong { width: 100%; overflow: hidden; color: #303133; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.candidate-body a { max-width: 100%; overflow: hidden; color: #409eff; font-size: 12px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.candidate-size { color: #909399; font-size: 11px; }
+.candidate-risks { display: flex; flex-wrap: wrap; gap: 4px; }
+.candidate-risk-reasons { margin: 0; padding-left: 18px; color: #b26a00; font-size: 12px; line-height: 1.5; }
+.publish-blockers { margin-bottom: 16px; }
+.publish-blockers ul { margin: 8px 0 0; padding-left: 20px; }
+.publish-actions :deep(.el-form-item__content) { display: flex; flex-wrap: wrap; gap: 10px; }
+.publish-actions .el-button { margin-left: 0; }
+@media (max-width: 1100px) { .image-candidates { grid-template-columns: 1fr; } }
 
 /* Style cards */
 .style-cards { display: flex; flex-direction: column; gap: 10px; }
@@ -1584,6 +2467,7 @@ onMounted(async () => {
 /* Agent Complete */
 .agent-complete { background: #f0f9eb; padding: 12px; border-radius: 8px; }
 .complete-summary { font-size: 13px; color: #67c23a; margin: 0 0 8px; }
+.complete-summary.needs-input { color: #e6a23c; }
 .cost-stats { font-size: 12px; }
 .cost-breakdown { margin-top: 8px; color: #606266; }
 .cost-breakdown summary { cursor: pointer; color: #409eff; }

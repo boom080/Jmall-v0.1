@@ -65,6 +65,7 @@ class BaseAgent(ABC):
         temperature: float = 0.7,
         max_tokens: int = 2048,
         extra_messages: Optional[List[Dict[str, str]]] = None,
+        system_prompt: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Call the LLM with the agent's system prompt and user message.
 
@@ -79,7 +80,8 @@ class BaseAgent(ABC):
         """
         provider_name, model_name = self.llm_router.route(self.agent_type)
 
-        messages = [{"role": "system", "content": self.system_prompt}]
+        # A shared graph agent must not mutate its prompt between requests.
+        messages = [{"role": "system", "content": system_prompt if system_prompt is not None else self.system_prompt}]
         if extra_messages:
             messages.extend(extra_messages)
         messages.append({"role": "user", "content": user_message})

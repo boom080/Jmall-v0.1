@@ -1,26 +1,44 @@
 """Request/response models for the agent orchestration API."""
 
+import re
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
+from app.platform_skills.registry import PLATFORM_SKILLS, ProductDraft, normalize_platform
 
 # Supported e-commerce platform styles
-SUPPORTED_STYLES = ["pinduoduo", "taobao", "jd", "suning", "xiaohongshu"]
+SUPPORTED_STYLES = list(PLATFORM_SKILLS)
+
+
+class InputAssessment(BaseModel):
+    """Deterministic preflight result for product orchestration."""
+
+    status: str = "needs_input"
+    ready: bool = False
+    score: int = Field(default=0, ge=0, le=100)
+    understood: List[str] = Field(default_factory=list)
+    missing: List[str] = Field(default_factory=list)
+    questions: List[str] = Field(default_factory=list, max_length=3)
 
 
 class ProductInfoRequest(BaseModel):
     """Product information for agent tasks."""
-    title: str = Field(..., min_length=1, max_length=120, description="商品标题")
+    # The preflight endpoint must accept an empty title so it can explain what
+    # is missing instead of returning a generic 422 validation error. The
+    # deterministic input gate still prevents orchestration until it is useful.
+    title: str = Field(default="", max_length=120, description="商品标题")
     category: str = Field("未分类", max_length=60, description="商品分类")
     description: Optional[str] = Field(default="", max_length=5000, description="商品描述")
     price: Optional[str] = Field(default="", max_length=20, description="商品价格（数字字符串）")
     specifications: Optional[str] = Field(default="", max_length=2000, description="商家已确认的规格参数")
     target_audience: Optional[str] = Field(default="", max_length=500, description="商家已确认的目标人群")
     usage_scenarios: Optional[str] = Field(default="", max_length=1000, description="商家已确认的使用场景")
+    subtitle: Optional[str] = Field(default="", max_length=160, description="AI 完善后的商品副标题")
+    seo_keywords: Optional[List[str]] = Field(default_factory=list, max_length=12, description="AI 完善后的 SEO 关键词")
 
     @field_validator(
         "title", "category", "description", "price",
-        "specifications", "target_audience", "usage_scenarios",
+        "specifications", "target_audience", "usage_scenarios", "subtitle",
         mode="before",
     )
     @classmethod
@@ -28,6 +46,15 @@ class ProductInfoRequest(BaseModel):
         if value is None:
             return value
         return str(value).strip()
+
+    @field_validator("seo_keywords", mode="before")
+    @classmethod
+    def normalize_seo_keywords(cls, value):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            return [part.strip() for part in re.split(r"[,，\n]", value) if part.strip()]
+        return value
 
 
 class OrchestrateRequest(BaseModel):
@@ -42,10 +69,7 @@ class OrchestrateRequest(BaseModel):
     @field_validator("target_style", mode="before")
     @classmethod
     def normalize_style(cls, value):
-        normalized = str(value).strip().lower() if value else "taobao"
-        if normalized not in SUPPORTED_STYLES:
-            raise ValueError(f"target_style 仅支持：{', '.join(SUPPORTED_STYLES)}")
-        return normalized
+        return normalize_platform(value)
 
     @field_validator("user_request", mode="before")
     @classmethod
@@ -61,7 +85,7 @@ class OrchestrateRequest(BaseModel):
 
 
 class CopyOnlyRequest(BaseModel):
-    """Request for single-agent copy generation."""
+    """Request for copy generation without market research or review."""
     product_info: ProductInfoRequest = Field(..., description="商品信息")
     target_style: str = Field("taobao", description="目标平台风格")
     knowledge_base_id: Optional[str] = Field(default=None, max_length=64, description="知识库 ID")
@@ -69,10 +93,7 @@ class CopyOnlyRequest(BaseModel):
     @field_validator("target_style", mode="before")
     @classmethod
     def normalize_style(cls, value):
-        normalized = str(value).strip().lower() if value else "taobao"
-        if normalized not in SUPPORTED_STYLES:
-            raise ValueError(f"target_style 仅支持：{', '.join(SUPPORTED_STYLES)}")
-        return normalized
+        return normalize_platform(value)
 
     @field_validator("knowledge_base_id", mode="before")
     @classmethod
@@ -118,10 +139,7 @@ class StylePreviewRequest(BaseModel):
     @field_validator("target_style", mode="before")
     @classmethod
     def normalize_style(cls, value):
-        normalized = str(value).strip().lower() if value else "taobao"
-        if normalized not in SUPPORTED_STYLES:
-            raise ValueError(f"target_style 仅支持：{', '.join(SUPPORTED_STYLES)}")
-        return normalized
+        return normalize_platform(value)
 
 
 class SearchTrendsRequest(BaseModel):
@@ -153,13 +171,20 @@ class OrchestrateResponse(BaseModel):
     compliance: Dict[str, Any] = Field(default_factory=dict)
     style_adaptation: Dict[str, Any] = Field(default_factory=dict)
     pending_confirmations: List[str] = Field(default_factory=list)
+    input_assessment: InputAssessment = Field(default_factory=InputAssessment)
     errors: List[str] = Field(default_factory=list)
     generation_metadata: Dict[str, Any] = Field(default_factory=dict)
     cost_stats: Optional[Dict[str, Any]] = Field(default=None)
 
 
+class InputAssessmentResponse(BaseModel):
+    """Response from the free deterministic input preflight endpoint."""
+
+    input_assessment: InputAssessment = Field(default_factory=InputAssessment)
+
+
 class CopyOnlyResponse(BaseModel):
-    """Response from single-agent copy generation."""
+    """Response from fact preparation plus the selected platform skill."""
     success: bool = True
     message: str = ""
     titles: List[str] = Field(default_factory=list)
@@ -168,6 +193,11 @@ class CopyOnlyResponse(BaseModel):
     short_video_script: str = ""
     style: str = ""
     pending_confirmations: List[str] = Field(default_factory=list)
+    input_assessment: InputAssessment = Field(default_factory=InputAssessment)
+    platform_skill_id: str = ""
+    platform_skill_version: str = ""
+    draft: Optional[ProductDraft] = None
+    fallback: bool = False
 
 
 class ReviewOnlyResponse(BaseModel):
@@ -200,6 +230,8 @@ class StyleInfo(BaseModel):
     description: str
     title_style: str = ""
     color_scheme: str = ""
+    platform_skill_id: str = ""
+    platform_skill_version: str = ""
 
 
 class StylesListResponse(BaseModel):
@@ -219,6 +251,12 @@ class StylePreviewResponse(BaseModel):
     adapted_detail: str = ""
     visual_params: Dict[str, Any] = Field(default_factory=dict)
     style_notes: str = ""
+    platform_skill_id: str = ""
+    platform_skill_version: str = ""
+    draft: Optional[ProductDraft] = None
+    pending_confirmations: List[str] = Field(default_factory=list)
+    fallback: bool = False
+    guarded: bool = False
 
 
 class SearchTrendsResponse(BaseModel):
