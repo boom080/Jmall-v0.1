@@ -50,6 +50,12 @@ logs/
 #markdown
 *.md
 !/README.md
+# Project docs must stay tracked: they carry acceptance records and evaluation plans.
+!/docs/**/*.md
+
+# Evaluation artifacts must stay traceable to the commit they were produced from.
+!jmall-eval/**
+!/jmall-eval/**/*.log
 
 # This frontend uses npm/package-lock.json; avoid a second lockfile.
 /jmall-web/pnpm-lock.yaml
