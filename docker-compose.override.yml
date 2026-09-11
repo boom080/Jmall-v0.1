@@ -1,0 +1,15 @@
+services:
+  frontend:
+    build:
+      context: ./jmall-web
+      dockerfile: Dockerfile.dev
+    ports: !override
+      - "5175:5175"
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:10301
+    volumes:
+      - ./jmall-web:/app
+      - jmall_web_node_modules:/app/node_modules
+
+volumes:
+  jmall_web_node_modules:

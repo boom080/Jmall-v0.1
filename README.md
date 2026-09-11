@@ -6,7 +6,7 @@ Jmall 是一个 AI 驱动的电商模拟经营平台，同时提供商家上架�
 
 ### 商家侧
 
-- 创建店铺和商品，维护价格、图片、详情与平台展示风格。
+- 创建和维护商品，管理价格、图片、详情与平台展示风格。
 - 商品默认保存为草稿，只有通过服务端信息、图片、确认项和合规门禁后才能发布；发布后可在“我的商品”中继续编辑或下架。
 - 通过 AI Agent 完成市场调研、RAG 知识检索、商品文案生成、合规检查和平台风格适配。
 - Agent 生成非空商品副标题，并在有联网来源时安全扩充目标人群和 8–12 个 SEO 词；商品事实仍只来自商家确认内容。
@@ -143,14 +143,27 @@ RAG_EMBEDDING_DIMENSION=1024
 
 ## 部署
 
-### 启动
+### 本地开发启动（默认，支持实时热更新）
 
 ```bash
 docker compose config --quiet
 docker compose up -d --build
 ```
 
+默认会自动加载 `docker-compose.override.yml`：前端在 Docker 中运行 Vite，并把本机 `jmall-web` 源码挂载到容器。修改 Vue、TypeScript、CSS 或 `src/assets` 后，`http://localhost:5175` 会自动热更新，不需要重新构建前端镜像。首次启动或依赖变化时会自动执行 `npm install`。
+
 MySQL、PostgreSQL、Redis、上传文件、Grafana 和 Agent 本地数据均使用 Docker 命名卷持久化；正常重建容器不会清空数据。修改 `.env` 后使用 `docker compose up -d --build` 让新环境变量进入容器。
+
+### 生产静态部署
+
+生产或生产式验证时仅使用基础 Compose 文件，前端会执行 `npm run build` 并由 Nginx 提供静态文件：
+
+```bash
+docker compose -f docker-compose.yml config --quiet
+docker compose -f docker-compose.yml up -d --build
+```
+
+这种模式不会实时读取源码；代码变化后必须重新构建镜像。恢复本地热更新模式时重新执行 `docker compose up -d --build frontend`。
 
 查看服务状态：
 
