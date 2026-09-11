@@ -1,134 +1,108 @@
-/* ========== Jmall Global Styles ========== */
-
+/* Jmall v0.3 — soft, playful commerce world */
 :root {
-  --primary: #6c5ce7;
-  --primary-light: #a29bfe;
-  --success: #00b894;
-  --warning: #fdcb6e;
-  --danger: #e17055;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f7fa;
-  --text-primary: #2d3436;
-  --text-secondary: #636e72;
-  --border-color: #e8e8e8;
-  --gold: #ffd700;
-  --radius: 12px;
+  --jm-page: #fff9f0;
+  --jm-surface: #fffefd;
+  --jm-soft: #fff1e2;
+  --jm-yellow-soft: #fff4cf;
+  --jm-pink-soft: #ffe5e9;
+  --jm-purple-soft: #eeeaff;
+  --jm-text: #342b4a;
+  --jm-muted: #84798d;
+  --jm-line: #eedfd2;
+  --jm-pink: #ff6b81;
+  --jm-red: #ff4d63;
+  --jm-rose: #c65776;
+  --jm-purple: #8b7cf6;
+  --jm-yellow: #ffd75e;
+  --jm-mint: #6dd2af;
+  --jm-shadow: 0 14px 35px rgba(94, 61, 86, .10);
+  --jm-shadow-soft: 0 7px 22px rgba(94, 61, 86, .07);
+  --jm-radius-xl: 26px;
+  --jm-radius-lg: 20px;
+  --jm-radius-md: 14px;
+
+  /* Compatibility tokens used by existing v0.1/v0.2 pages. */
+  --primary: var(--jm-red);
+  --primary-light: #ff9aac;
+  --success: var(--jm-mint);
+  --warning: var(--jm-yellow);
+  --danger: var(--jm-red);
+  --bg-primary: var(--jm-surface);
+  --bg-secondary: var(--jm-page);
+  --text-primary: var(--jm-text);
+  --text-secondary: var(--jm-muted);
+  --border-color: var(--jm-line);
+  --gold: var(--jm-yellow);
+  --radius: var(--jm-radius-md);
+
+  --el-color-primary: var(--jm-red);
+  --el-color-primary-light-3: #ff7c8d;
+  --el-color-primary-light-5: #ff9dac;
+  --el-color-primary-light-7: #ffc3cb;
+  --el-color-primary-light-8: #ffd9de;
+  --el-color-primary-light-9: #fff0f2;
+  --el-color-primary-dark-2: #d93c50;
+  --el-color-success: #43b991;
+  --el-color-warning: #e9ad2d;
+  --el-color-danger: #ec4e62;
+  --el-border-radius-base: 11px;
+  --el-border-radius-small: 9px;
+  --el-text-color-primary: var(--jm-text);
+  --el-text-color-regular: #665d70;
+  --el-border-color: var(--jm-line);
+  --el-border-color-light: #f2e7de;
+  --el-fill-color-light: #fff7ef;
+  --el-bg-color: var(--jm-surface);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
+html, body, #app { min-width: 320px; min-height: 100%; margin: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: var(--text-primary);
-  background: var(--bg-secondary);
+  color: var(--jm-text);
+  background:
+    radial-gradient(circle at 7% 17%, rgba(255, 215, 94, .13) 0 3px, transparent 4px),
+    radial-gradient(circle at 89% 12%, rgba(255, 107, 129, .10) 0 4px, transparent 5px),
+    var(--jm-page);
+  background-size: 78px 78px, 112px 112px, auto;
+  font-family: ui-rounded, "SF Pro Rounded", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 3px solid rgba(139, 124, 246, .28); outline-offset: 2px; }
+img { max-width: 100%; }
+#jmall-app { display: flex; min-height: 100vh; flex-direction: column; }
 
-/* ========== Top Navigation Bar ========== */
-.jmall-topbar {
-  height: 64px;
-  background: white;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
+/* Existing platform-flavour cards retain their identities inside the new shell. */
+.card-style-pinduoduo { --card-primary: #e02e24; --card-accent: #ff6b35; }
+.card-style-taobao { --card-primary: #ff5000; --card-accent: #ff8c38; }
+.card-style-jd { --card-primary: #c91623; --card-accent: #e4393c; }
+.card-style-suning { --card-primary: #0066cc; --card-accent: #3388ff; }
+.card-style-xiaohongshu { --card-primary: #ff2442; --card-accent: #ff6b81; }
 
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* Friendly Element Plus surface treatment. */
+.el-button { min-height: 38px; font-weight: 700; }
+.el-button--primary { box-shadow: 0 7px 16px rgba(255, 77, 99, .20); }
+.el-card, .el-dialog, .el-message-box { border-color: var(--jm-line) !important; border-radius: var(--jm-radius-lg) !important; }
+.el-dialog { overflow: hidden; box-shadow: 0 24px 70px rgba(71, 48, 69, .18) !important; }
+.el-input__wrapper, .el-textarea__inner, .el-select__wrapper { border-radius: 12px !important; box-shadow: 0 0 0 1px var(--jm-line) inset !important; }
+.el-input__wrapper.is-focus, .el-textarea__inner:focus, .el-select__wrapper.is-focused { box-shadow: 0 0 0 2px rgba(255, 77, 99, .25) inset !important; }
+.el-tag { border-radius: 999px; font-weight: 650; }
+.el-dropdown-menu { padding: 7px; border-radius: 14px; }
+.el-dropdown-menu__item { border-radius: 9px; }
 
-.app-logo {
-  font-size: 22px;
-  font-weight: bold;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.2s;
-}
-.app-logo:hover { transform: scale(1.05); }
+.page-pop-enter-active, .page-pop-leave-active { transition: opacity .18s ease, transform .18s ease; }
+.page-pop-enter-from { opacity: 0; transform: translateY(6px); }
+.page-pop-leave-to { opacity: 0; transform: translateY(-3px); }
+.fade-enter-active, .fade-leave-active { transition: opacity .18s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
-.app-subtitle {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.gold-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 16px;
-  background: linear-gradient(135deg, #fff9e6, #fff3cd);
-  border-radius: 20px;
-  border: 1px solid #ffd700;
-}
-
-.gold-amount {
-  font-weight: bold;
-  color: #d4a017;
-  font-size: 16px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 12px;
-  border-radius: 20px;
-  transition: background 0.2s;
-}
-.user-info:hover { background: var(--bg-secondary); }
-
-.username { font-size: 14px; font-weight: 500; }
-
-/* ========== Transitions ========== */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-
-/* ========== Scrollbar ========== */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #aaa; }
+::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 99px; background: #d9c8c4; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: #bfa9ab; }
 
-/* ========== Style Theme Variables ========== */
-/* Applied to specific product cards via card-style-* class */
-.card-style-pinduoduo {
-  --card-primary: #e02e24;
-  --card-accent: #ff6b35;
-}
-
-.card-style-taobao {
-  --card-primary: #ff5000;
-  --card-accent: #ff8c38;
-}
-
-.card-style-jd {
-  --card-primary: #c91623;
-  --card-accent: #e4393c;
-}
-
-.card-style-suning {
-  --card-primary: #0066cc;
-  --card-accent: #3388ff;
-}
-
-.card-style-xiaohongshu {
-  --card-primary: #ff2442;
-  --card-accent: #ff6b81;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }

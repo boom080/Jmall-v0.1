@@ -1,14 +1,29 @@
 <template>
   <div class="product-editor">
-    <div class="editor-header">
-      <h2>{{ isEdit ? '编辑商品' : '上架新商品' }}</h2>
+    <header class="studio-header">
+      <div class="studio-heading">
+        <div class="studio-brand-line"><JmallMascot variant="mark" :size="38" :animated="false" label="Jmall 吉祥物" /><div class="studio-kicker"><span class="kicker-dot" /> Jmall AI 商品工作室 <span class="version-pill">v0.3</span></div></div>
+        <div class="studio-title-row">
+          <div>
+            <h1>{{ isEdit ? '编辑商品' : '上架新商品' }}</h1>
+            <p>把一个想法，变成一件准备被喜欢的好物</p>
+          </div>
+          <div class="studio-status" :class="{ 'is-busy': agentLoading || saving, 'is-ready': agentComplete && !agentLoading }">
+            <span class="status-orb" />
+            {{ saving ? '正在保存商品' : agentLoading ? 'AI 正在工作' : agentComplete ? '可以检查发布' : '准备开始' }}
+          </div>
+        </div>
+      </div>
       <div class="editor-actions">
-        <el-button size="large" :loading="assessmentLoading" :disabled="agentLoading || assessmentLoading" @click="checkInputOnly">免费检查信息</el-button>
-        <el-button type="primary" size="large" :loading="agentLoading" :disabled="agentLoading || assessmentLoading" @click="triggerAgent">
+        <el-button class="action-soft" size="large" :loading="assessmentLoading" :disabled="agentLoading || assessmentLoading" @click="checkInputOnly">
+          <span class="button-icon">🧩</span> 免费检查信息
+        </el-button>
+        <el-button class="action-primary" type="primary" size="large" :loading="agentLoading" :disabled="agentLoading || assessmentLoading" @click="triggerAgent">
           <el-icon><MagicStick /></el-icon> AI 检查并生成
         </el-button>
         <div class="image-search-action" :title="imageSearchDisabledReason">
           <el-button
+            class="action-image"
             type="success"
             plain
             size="large"
@@ -20,14 +35,39 @@
           <span v-if="!canSearchImageCandidates" class="image-search-action-hint">{{ imageSearchDisabledReason }}</span>
         </div>
       </div>
+    </header>
+
+    <div class="studio-stepper" aria-label="商品上架流程">
+      <div class="stepper-line" />
+      <div class="studio-step" :class="{ active: studioStep >= 1, current: studioStep === 1 }">
+        <span class="step-number">1</span>
+        <div><strong>讲清商品</strong><small>填写真实信息</small></div>
+      </div>
+      <div class="studio-step" :class="{ active: studioStep >= 2, current: studioStep === 2 }">
+        <span class="step-number">2</span>
+        <div><strong>AI 生成</strong><small>调研 · 文案 · 审核</small></div>
+      </div>
+      <div class="studio-step" :class="{ active: studioStep >= 3, current: studioStep === 3 }">
+        <span class="step-number">3</span>
+        <div><strong>检查发布</strong><small>确认后上架</small></div>
+      </div>
+      <span class="stepper-hint">{{ studioStepLabel }}</span>
     </div>
 
     <el-row :gutter="24">
       <!-- Main Editor -->
-      <el-col :span="16">
+      <el-col :span="16" class="editor-main-column">
         <el-card shadow="never" class="editor-card">
-          <el-form :model="form" label-position="top">
-            <el-form-item label="商品名称" required>
+          <div class="card-heading">
+            <div>
+              <span class="section-eyebrow">STEP 01 · YOUR PRODUCT</span>
+              <h2>先把好物说清楚</h2>
+              <p>真实、完整的信息越多，AI 越能写出像你的商品。</p>
+            </div>
+            <JmallMascot variant="wave" :size="64" label="Jmall 吉祥物挥手" />
+          </div>
+          <el-form :model="form" label-position="top" class="studio-form">
+            <el-form-item label="商品名称" required class="form-item-featured">
               <el-input v-model="form.title" placeholder="如：明前特级西湖龙井 50g" maxlength="120" show-word-limit />
               <el-tag v-if="aiFields.title" size="small" type="warning" effect="plain" class="ai-badge">🤖 AI 建议</el-tag>
             </el-form-item>
@@ -50,7 +90,7 @@
             </el-row>
 
             <!-- Product Image Area -->
-            <el-form-item label="商品图片">
+            <el-form-item label="商品图片" class="form-item-images">
               <div class="image-area">
                 <div class="image-list">
                   <div v-for="(url, index) in form.images" :key="index" class="image-item">
@@ -84,60 +124,11 @@
                   </el-upload>
                 </div>
                 <p class="upload-hint">支持 JPG/PNG/WebP，单张不超过 5MB，最多 6 张；也可以让 Image Scout 搜索相似图片。</p>
-
-                <div v-if="form.images.length === 0" class="image-scout">
-                  <div class="image-scout-header">
-                    <div>
-                      <strong>🔎 Image Scout</strong>
-                      <p>根据已确认的商品事实搜索 Google 图片，最多展示 3 个带来源候选。</p>
-                    </div>
-                  </div>
-                  <el-alert
-                    title="Jmall 只负责搜索和展示，不保证图片使用权，也不会移除水印。请在使用前自行核对。"
-                    type="warning"
-                    :closable="false"
-                    show-icon
-                  />
-                  <p v-if="imageSearchMessage" class="image-search-message">{{ imageSearchMessage }}</p>
-                  <div v-if="imageCandidates.length" class="image-candidates">
-                    <article v-for="candidate in imageCandidates" :key="candidate.candidate_id" class="image-candidate-card">
-                      <img
-                        :src="candidate.thumbnail_url"
-                        :alt="candidate.title || form.title"
-                        class="candidate-thumbnail"
-                        referrerpolicy="no-referrer"
-                      />
-                      <div class="candidate-body">
-                        <strong>{{ candidate.title || '相似商品图片' }}</strong>
-                        <span v-if="candidate.width && candidate.height" class="candidate-size">
-                          {{ candidate.width }} × {{ candidate.height }}
-                        </span>
-                        <a
-                          :href="candidate.source_page_url"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >来源：{{ candidate.source_name || candidate.author }}</a>
-                        <div class="candidate-risks">
-                          <el-tag
-                            v-for="risk in candidate.risk_flags"
-                            :key="risk"
-                            size="small"
-                            type="warning"
-                            effect="plain"
-                          >{{ imageRiskLabel(risk) }}</el-tag>
-                        </div>
-                        <ul v-if="candidate.risk_reasons.length" class="candidate-risk-reasons">
-                          <li v-for="reason in candidate.risk_reasons" :key="reason">{{ reason }}</li>
-                        </ul>
-                        <el-button size="small" type="primary" @click="useImageCandidate(candidate)">使用此图</el-button>
-                      </div>
-                    </article>
-                  </div>
-                </div>
               </div>
             </el-form-item>
 
-            <el-form-item label="商品说明 / 一段话需求">
+            <div class="form-section-note"><span>✦</span> 商品故事与受众</div>
+            <el-form-item label="商品说明 / 一段话需求" class="form-item-description">
               <el-input
                 v-model="form.description"
                 type="textarea"
@@ -173,7 +164,7 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-form-item label="促销文案">
+            <el-form-item label="促销文案" class="form-item-promotion">
               <el-input v-model="form.promotionCopy" type="textarea" :rows="2" placeholder="不确定的优惠信息请勿发布" />
             </el-form-item>
             <el-form-item v-if="aiPriceSuggestionYuan !== null" label="AI 价格建议（仅供参考）">
@@ -182,7 +173,8 @@
                 <el-button size="small" plain @click="form.priceYuan = aiPriceSuggestionYuan">应用建议</el-button>
               </div>
             </el-form-item>
-            <el-form-item label="展示风格">
+            <div class="form-section-note"><span>✦</span> 选择你的表达方式</div>
+            <el-form-item label="展示风格" class="form-item-style">
               <el-select v-model="form.style" @change="handlePlatformChange">
                 <el-option v-for="s in styles" :key="s.value" :label="s.label" :value="s.value">
                   {{ s.icon }} {{ s.label }}
@@ -226,15 +218,42 @@
       </el-col>
 
       <!-- Agent Panel (Right Sidebar) -->
-      <el-col :span="8">
+      <el-col :span="8" class="studio-side-column">
         <div class="agent-panel" v-if="agentActive">
           <el-card shadow="never">
             <template #header>
               <div class="agent-panel-header">
-                <span>🤖 AI 上架助手</span>
+                <div class="agent-panel-title">
+                  <JmallMascot variant="mark" :size="30" :animated="false" label="Jmall AI 吉祥物" />
+                  <div><strong>AI 商品参谋团</strong><small>帮你把好物变得更会卖</small></div>
+                </div>
                 <el-switch v-model="agentActive" size="small" />
               </div>
             </template>
+
+            <div v-if="saving" class="studio-saving-state" role="status" aria-live="polite">
+              <JmallMascot variant="celebrate" :size="76" label="Jmall 吉祥物正在发布商品" />
+              <div><strong>正在把好物送上货架…</strong><span>马上就好，请不要关闭页面</span></div>
+            </div>
+
+            <div v-if="agentLoading" class="agent-loading-hero" role="status" aria-live="polite">
+              <div class="loading-mascot-wrap">
+                <JmallMascot variant="wave" :size="112" label="Jmall 吉祥物正在生成商品内容" />
+                <span class="loading-orbit orbit-one" />
+                <span class="loading-orbit orbit-two" />
+              </div>
+              <div class="loading-copy">
+                <span class="loading-eyebrow">AI 商品工作室 · {{ completedStageCount }}/7</span>
+                <h3>{{ agentStatus || 'AI 正在为你的商品准备内容' }}</h3>
+                <p>{{ agentLoadingHint }}</p>
+              </div>
+              <el-progress :percentage="agentProgressPercent" :show-text="false" :stroke-width="8" color="#ff6b7d" />
+              <div class="loading-footer">
+                <span>任务会在后台继续运行</span>
+                <el-button link type="primary" @click="gameOpen = !gameOpen">{{ gameOpen ? '收起小游戏' : '边等边玩' }} 🎮</el-button>
+              </div>
+              <CatchGoodsMiniGame v-if="gameOpen" :active="agentLoading" class="studio-mini-game" />
+            </div>
 
             <!-- Demo Mode Banner -->
             <el-alert
@@ -261,6 +280,7 @@
               class="agent-section input-assessment"
               :class="inputAssessment.ready ? 'assessment-ready' : 'assessment-needs-input'"
             >
+              <div class="assessment-kicker"><span>STEP 02</span> AI 生成门槛</div>
               <div class="assessment-title">
                 <h4>{{ inputAssessment.ready ? '✅ 商品信息可以开始生成' : '🧩 请先补全商品信息' }}</h4>
                 <strong>{{ inputAssessment.score }}%</strong>
@@ -286,6 +306,62 @@
                   <li v-for="question in inputAssessment.questions" :key="question">{{ question }}</li>
                 </ol>
                 <p>直接补充左侧原表单后再次检查即可；不必把示例全部填满，信息不足时不会调用模型或扣费。</p>
+              </div>
+            </div>
+
+            <!-- Image Scout stays beside the completeness check so the merchant
+                 can see why search is gated and what facts will be used. -->
+            <div v-if="form.images.length === 0" class="image-scout">
+              <div class="image-scout-header">
+                <div class="scout-title-row">
+                  <span class="scout-icon">🔎</span>
+                  <div>
+                    <strong>Image Scout 找图</strong>
+                    <p>AI 完善信息后，从 Google 找 3 张相似图片供你挑选。</p>
+                  </div>
+                </div>
+                <span class="scout-state" :class="{ ready: canSearchImageCandidates }">{{ canSearchImageCandidates ? '已解锁' : '待解锁' }}</span>
+              </div>
+              <el-alert
+                title="Jmall 只负责搜索和展示，不保证图片使用权，也不会移除水印。请在使用前自行核对。"
+                type="warning"
+                :closable="false"
+                show-icon
+              />
+              <p v-if="imageSearchMessage" class="image-search-message">{{ imageSearchMessage }}</p>
+              <div v-if="imageCandidates.length" class="image-candidates">
+                <article v-for="candidate in imageCandidates" :key="candidate.candidate_id" class="image-candidate-card">
+                  <img
+                    :src="candidate.thumbnail_url"
+                    :alt="candidate.title || form.title"
+                    class="candidate-thumbnail"
+                    referrerpolicy="no-referrer"
+                  />
+                  <div class="candidate-body">
+                    <strong>{{ candidate.title || '相似商品图片' }}</strong>
+                    <span v-if="candidate.width && candidate.height" class="candidate-size">
+                      {{ candidate.width }} × {{ candidate.height }}
+                    </span>
+                    <a
+                      :href="candidate.source_page_url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >来源：{{ candidate.source_name || candidate.author }}</a>
+                    <div class="candidate-risks">
+                      <el-tag
+                        v-for="risk in candidate.risk_flags"
+                        :key="risk"
+                        size="small"
+                        type="warning"
+                        effect="plain"
+                      >{{ imageRiskLabel(risk) }}</el-tag>
+                    </div>
+                    <ul v-if="candidate.risk_reasons.length" class="candidate-risk-reasons">
+                      <li v-for="reason in candidate.risk_reasons" :key="reason">{{ reason }}</li>
+                    </ul>
+                    <el-button size="small" type="primary" @click="useImageCandidate(candidate)">使用此图</el-button>
+                  </div>
+                </article>
               </div>
             </div>
 
@@ -410,8 +486,13 @@
 
             <!-- Agent Completion Summary -->
             <div v-if="agentComplete" class="agent-section agent-complete">
-              <h4>{{ inputAssessment && !inputAssessment.ready ? '🧩 等待补充商品信息' : (agentHadErrors ? '⚠️ Agent 降级完成' : '✅ Agent 任务完成') }}</h4>
-              <p class="complete-summary" :class="{ 'needs-input': inputAssessment && !inputAssessment.ready }">{{ agentCompleteSummary }}</p>
+              <div class="complete-heading">
+                <JmallMascot :variant="inputAssessment && !inputAssessment.ready ? 'wave' : 'celebrate'" :size="62" :animated="false" label="Jmall 吉祥物完成 AI 商品任务" />
+                <div>
+                  <h4>{{ inputAssessment && !inputAssessment.ready ? '🧩 还差一点点信息' : (agentHadErrors ? '⚠️ 已用安全方案完成' : '🎉 商品内容准备好了') }}</h4>
+                  <p class="complete-summary" :class="{ 'needs-input': inputAssessment && !inputAssessment.ready }">{{ agentCompleteSummary }}</p>
+                </div>
+              </div>
               <div v-if="pendingConfirmations.length" class="pending-confirmations">
                 <strong>待商家确认：</strong>
                 <ul>
@@ -434,8 +515,9 @@
 
         <!-- Agent Toggle (when closed) -->
         <div v-else class="agent-collapsed" @click="agentActive = true">
+          <JmallMascot variant="idle" :size="72" label="Jmall 吉祥物，打开 AI 参谋团" />
+          <div><strong>AI 参谋团正在休息</strong><span>点我打开商品检查、生成和发布助手</span></div>
           <el-icon><MagicStick /></el-icon>
-          <span>AI 参谋团</span>
         </div>
       </el-col>
     </el-row>
@@ -448,6 +530,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { productApi } from '@/services/products'
 import { createEditorFunnel } from '@/services/editorTelemetry'
+import JmallMascot from '@/components/brand/JmallMascot.vue'
+import CatchGoodsMiniGame from '@/components/game/CatchGoodsMiniGame.vue'
 import {
   aiImageApi,
   buildSelectedImageSource,
@@ -519,6 +603,31 @@ const stageList = [
   { key: 'style_adaptation', label: '🎨 风格适配' },
   { key: 'compliance_review', label: '⚖️ 合规审查' },
 ]
+
+const gameOpen = ref(false)
+const completedStageCount = computed(() => stageList.filter(stage => agentStages.value[stage.key] === 'completed').length)
+const agentProgressPercent = computed(() => {
+  if (!agentLoading.value && agentComplete.value && completedStageCount.value === stageList.length) return 100
+  if (!completedStageCount.value && !agentLoading.value) return 0
+  return Math.min(96, Math.round((completedStageCount.value / stageList.length) * 100))
+})
+const studioStep = computed(() => {
+  if (inputAssessment.value && !inputAssessment.value.ready) return 1
+  if (agentLoading.value) return 2
+  if (agentComplete.value) return 3
+  return 1
+})
+const studioStepLabel = computed(() => {
+  if (saving.value) return '正在保存你的商品'
+  if (agentLoading.value) return `AI 正在完成第 ${Math.min(completedStageCount.value + 1, stageList.length)} 步`
+  if (agentComplete.value) return '请检查 AI 建议，再决定是否发布'
+  return '从填写商品信息开始'
+})
+const agentLoadingHint = computed(() => {
+  if (currentJobId.value) return '即使离开页面，任务也会在后台继续；回来后会自动恢复进度。'
+  if (agentStatus.value.includes('检查')) return '先确认商品信息闭环，信息不足时不会启动完整 Agent。'
+  return '正在搜索灵感、整理卖点并检查合规，稍等一下就会回来。'
+})
 
 const agentHadErrors = computed(() => Object.values(agentStages.value).includes('error'))
 
@@ -2472,4 +2581,304 @@ onMounted(async () => {
 .cost-breakdown { margin-top: 8px; color: #606266; }
 .cost-breakdown summary { cursor: pointer; color: #409eff; }
 .cost-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px dashed #dcdfe6; }
+</style>
+
+<style scoped>
+/* v0.3 AI Product Studio -------------------------------------------------- */
+.product-editor {
+  --jm-red: #ff5d73;
+  --jm-red-deep: #ed4962;
+  --jm-pink: #ff9fb1;
+  --jm-lilac: #9689e9;
+  --jm-purple: #574a84;
+  --jm-yellow: #ffd766;
+  --jm-yellow-soft: #fff5d6;
+  --jm-mint: #72d3b2;
+  --jm-ink: #382f50;
+  --jm-muted: #84798d;
+  --jm-line: #eadfe5;
+  --jm-surface: #fffdfb;
+  --jm-soft: #fff5ed;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1480px;
+  min-height: calc(100vh - 72px);
+  margin: 0 auto;
+  padding: 28px clamp(18px, 3vw, 42px) 56px;
+  color: var(--jm-ink);
+  background:
+    radial-gradient(circle at 4% 2%, rgba(255, 215, 102, .18), transparent 22%),
+    radial-gradient(circle at 97% 10%, rgba(150, 137, 233, .14), transparent 24%),
+    linear-gradient(180deg, #fffaf7 0%, #fffdfb 56%, #faf7ff 100%);
+}
+
+.studio-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+.studio-heading { min-width: 0; }
+.studio-brand-line { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.studio-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--jm-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .07em;
+}
+.kicker-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--jm-red); box-shadow: 0 0 0 4px rgba(255, 93, 115, .12); }
+.version-pill {
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 93, 115, .22);
+  border-radius: 99px;
+  color: var(--jm-red-deep);
+  background: #fff0f3;
+  font-size: 10px;
+  letter-spacing: .04em;
+}
+.studio-title-row { display: flex; align-items: center; gap: 18px; }
+.studio-title-row h1 { margin: 0; color: var(--jm-ink); font-size: clamp(27px, 3vw, 36px); line-height: 1.15; letter-spacing: -.035em; }
+.studio-title-row p { margin: 7px 0 0; color: var(--jm-muted); font-size: 13px; }
+.studio-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--jm-line);
+  border-radius: 99px;
+  color: var(--jm-muted);
+  background: rgba(255, 255, 255, .75);
+  font-size: 12px;
+  font-weight: 700;
+}
+.studio-status.is-busy { border-color: rgba(255, 93, 115, .26); color: var(--jm-red-deep); background: #fff0f3; }
+.studio-status.is-ready { border-color: rgba(114, 211, 178, .45); color: #2e8c73; background: #edfbf5; }
+.status-orb { width: 8px; height: 8px; border-radius: 50%; background: #c8bfca; }
+.studio-status.is-busy .status-orb { background: var(--jm-red); box-shadow: 0 0 0 5px rgba(255, 93, 115, .13); animation: status-pulse 1.4s ease-in-out infinite; }
+.studio-status.is-ready .status-orb { background: var(--jm-mint); }
+@keyframes status-pulse { 50% { transform: scale(.72); opacity: .55; } }
+
+.editor-actions { display: flex; align-items: flex-start; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.editor-actions :deep(.el-button) { min-height: 42px; border-radius: 13px; font-weight: 700; }
+.editor-actions :deep(.action-soft) { border-color: #eadfe5; color: var(--jm-purple); background: rgba(255, 255, 255, .9); }
+.editor-actions :deep(.action-primary) { border-color: var(--jm-red); background: linear-gradient(135deg, var(--jm-red), #ff7b89); box-shadow: 0 8px 18px rgba(255, 93, 115, .22); }
+.editor-actions :deep(.action-image) { border-color: #b9e5d3; color: #268565; background: #f3fcf8; }
+.button-icon { margin-right: 3px; }
+.image-search-action { max-width: 260px; }
+.image-search-action-hint { display: block; margin: 4px 4px 0; color: var(--jm-muted); font-size: 11px; line-height: 1.35; }
+
+.studio-stepper {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 76px;
+  margin-bottom: 24px;
+  padding: 13px 18px;
+  overflow: hidden;
+  border: 1px solid rgba(234, 223, 229, .9);
+  border-radius: 19px;
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 10px 28px rgba(65, 49, 93, .05);
+}
+.stepper-line { position: absolute; z-index: 0; top: 50%; left: 54px; right: 29%; height: 2px; transform: translateY(-10px); background: #eee7ef; }
+.studio-step { position: relative; z-index: 1; display: flex; align-items: center; gap: 9px; min-width: 0; padding: 6px 8px; border-radius: 12px; color: #b5aebb; }
+.studio-step.active { color: var(--jm-purple); }
+.studio-step.current { background: #fff1f3; }
+.step-number { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 auto; border: 2px solid #e5dce7; border-radius: 50%; color: #b5aebb; background: #fff; font-size: 12px; font-weight: 800; }
+.studio-step.active .step-number { border-color: var(--jm-red); color: #fff; background: var(--jm-red); box-shadow: 0 4px 10px rgba(255, 93, 115, .2); }
+.studio-step strong, .studio-step small { display: block; }
+.studio-step strong { font-size: 13px; }
+.studio-step small { margin-top: 2px; color: var(--jm-muted); font-size: 10px; }
+.stepper-hint { justify-self: end; color: var(--jm-muted); font-size: 11px; white-space: nowrap; }
+
+.editor-main-column, .studio-side-column { min-width: 0; }
+.editor-card, .agent-panel > :deep(.el-card) {
+  border: 1px solid rgba(234, 223, 229, .9) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, .9) !important;
+  box-shadow: 0 14px 34px rgba(65, 49, 93, .06) !important;
+}
+.editor-card :deep(.el-card__body) { padding: clamp(20px, 3vw, 32px); }
+.card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; padding-bottom: 19px; border-bottom: 1px dashed #eadfe5; }
+.section-eyebrow { display: block; margin-bottom: 7px; color: var(--jm-red-deep); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.card-heading h2 { margin: 0; color: var(--jm-ink); font-size: 21px; letter-spacing: -.02em; }
+.card-heading p { margin: 6px 0 0; color: var(--jm-muted); font-size: 12px; }
+.studio-form :deep(.el-form-item) { margin-bottom: 19px; }
+.studio-form :deep(.el-form-item__label) { height: auto; margin-bottom: 6px; color: #544967; font-size: 12px; font-weight: 800; line-height: 1.4; }
+.studio-form :deep(.el-input__wrapper), .studio-form :deep(.el-textarea__inner), .studio-form :deep(.el-select__wrapper) { border-radius: 11px; box-shadow: 0 0 0 1px #eadfe5 inset !important; background: #fffdfa; }
+.studio-form :deep(.el-input__wrapper:hover), .studio-form :deep(.el-input__wrapper.is-focus), .studio-form :deep(.el-textarea__inner:focus), .studio-form :deep(.el-select__wrapper.is-focused) { box-shadow: 0 0 0 1px var(--jm-pink) inset, 0 0 0 3px rgba(255, 159, 177, .12) !important; }
+.studio-form :deep(.el-input__inner), .studio-form :deep(.el-textarea__inner) { color: var(--jm-ink); font-size: 13px; }
+.form-item-featured :deep(.el-input__wrapper) { min-height: 46px; background: #fff9f5; }
+.form-item-description :deep(.el-textarea__inner) { min-height: 148px; padding: 13px 14px; line-height: 1.75; }
+.form-section-note { display: flex; align-items: center; gap: 7px; margin: 7px 0 14px; color: var(--jm-purple); font-size: 12px; font-weight: 800; }
+.form-section-note span { display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; color: #fff; background: var(--jm-lilac); font-size: 11px; }
+.input-guidance { margin: 8px 0 0; color: var(--jm-muted); font-size: 11px; line-height: 1.65; }
+.ai-badge { margin-left: 7px; border-color: #f4cb8a; border-radius: 99px; color: #ac711a; background: #fff8e9; }
+
+/* Upload tiles */
+.image-area { padding: 14px; border: 1px solid #eee5e9; border-radius: 16px; background: linear-gradient(135deg, #fffaf6, #fff); }
+.image-list { gap: 10px; }
+.image-item, .image-upload-trigger { width: 112px; height: 112px; border-radius: 14px; }
+.image-item { border-color: #eadfe5; }
+.image-item.fallback { border: 1px dashed #d7cbd9; opacity: .86; }
+.upload-placeholder { width: 112px; height: 112px; border: 2px dashed #ddcedc; border-radius: 14px; color: var(--jm-muted); background: rgba(255, 255, 255, .68); }
+.upload-placeholder:hover { border-color: var(--jm-pink); color: var(--jm-red); background: #fff5f6; }
+.upload-hint { margin: 10px 0 0; color: var(--jm-muted); font-size: 11px; }
+.generated-label { padding: 4px 0; background: rgba(56, 47, 80, .72); font-size: 10px; }
+.image-actions { top: 6px; right: 6px; }
+
+/* Right-hand AI studio */
+.agent-panel { position: sticky; top: 84px; }
+.agent-panel > :deep(.el-card__header) { padding: 15px 18px; border-bottom: 1px solid #f0e7ed; }
+.agent-panel > :deep(.el-card__body) { padding: 18px; }
+.agent-panel-header { min-height: 34px; }
+.agent-panel-title { display: flex; align-items: center; gap: 9px; }
+.agent-panel-title > div { display: grid; gap: 2px; }
+.agent-panel-title strong { color: var(--jm-ink); font-size: 14px; }
+.agent-panel-title small { color: var(--jm-muted); font-size: 10px; }
+.studio-saving-state { display: flex; align-items: center; gap: 9px; margin: -2px 0 16px; padding: 10px 12px; border: 1px solid #f3d5dd; border-radius: 15px; background: #fff2f5; }
+.studio-saving-state > div { display: grid; gap: 3px; }
+.studio-saving-state strong { color: var(--jm-red-deep); font-size: 12px; }
+.studio-saving-state span { color: var(--jm-muted); font-size: 10px; }
+.agent-loading-hero { margin: -2px 0 18px; padding: 16px 14px 13px; border: 1px solid #f1dce3; border-radius: 18px; background: linear-gradient(145deg, #fff5f6, #f8f4ff); }
+.loading-mascot-wrap { position: relative; display: grid; place-items: center; width: 132px; height: 118px; margin: -3px auto 2px; }
+.loading-mascot-wrap::before { content: ''; position: absolute; width: 102px; height: 56px; border-radius: 50%; background: rgba(255, 159, 177, .17); filter: blur(1px); }
+.loading-mascot-wrap :deep(.jmall-mascot) { position: relative; z-index: 1; }
+.loading-orbit { position: absolute; border: 1px solid rgba(255, 93, 115, .34); border-radius: 50%; transform: rotate(28deg); animation: orbit-drift 2.8s linear infinite; }
+.orbit-one { width: 106px; height: 45px; }
+.orbit-two { width: 118px; height: 59px; border-color: rgba(150, 137, 233, .3); animation-duration: 3.8s; animation-direction: reverse; }
+@keyframes orbit-drift { to { transform: rotate(388deg); } }
+.loading-copy { text-align: center; }
+.loading-eyebrow { color: var(--jm-red-deep); font-size: 10px; font-weight: 800; letter-spacing: .07em; }
+.loading-copy h3 { margin: 6px 0 5px; color: var(--jm-ink); font-size: 15px; line-height: 1.45; }
+.loading-copy p { margin: 0 auto 12px; max-width: 275px; color: var(--jm-muted); font-size: 11px; line-height: 1.55; }
+.agent-loading-hero :deep(.el-progress-bar__outer) { background: #f3dfe5; }
+.loading-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; color: var(--jm-muted); font-size: 10px; }
+.loading-footer :deep(.el-button) { padding: 0; color: var(--jm-purple); font-size: 11px; font-weight: 700; }
+.studio-mini-game { display: block; margin-top: 12px; }
+
+.agent-section { margin-bottom: 17px; padding-bottom: 17px; border-bottom: 1px dashed #eadfe5; }
+.agent-section h4 { margin: 0 0 10px; color: var(--jm-ink); font-size: 14px; }
+.platform-skill-meta { margin: 0 0 10px; color: var(--jm-muted); font-size: 10px; }
+.assessment-kicker { margin-bottom: 8px; color: var(--jm-red-deep); font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.assessment-kicker span { margin-right: 5px; color: var(--jm-purple); }
+.input-assessment { padding: 14px; border: 1px solid #eedbe1; border-radius: 16px; }
+.assessment-ready { border-color: #bce7d3; background: #f2fcf7; }
+.assessment-needs-input { border-color: #f4d7a8; background: #fff9ed; }
+.assessment-title h4 { font-size: 14px; }
+.assessment-title strong { color: var(--jm-red-deep); font-size: 17px; }
+.assessment-ready .assessment-title strong { color: #329276; }
+.assessment-summary { margin: 8px 0; color: var(--jm-muted); font-size: 11px; line-height: 1.55; }
+.assessment-group { gap: 4px; margin-top: 9px; }
+.assessment-label { color: var(--jm-muted); font-size: 10px; }
+.assessment-questions { margin-top: 11px; color: #655b70; font-size: 11px; line-height: 1.55; }
+.assessment-questions ol { margin: 5px 0 0; }
+.assessment-questions p { margin: 8px 0 0; color: var(--jm-muted); font-size: 10px; }
+.input-assessment :deep(.el-progress-bar__outer) { background: rgba(243, 210, 219, .55); }
+.assessment-ready :deep(.el-progress-bar__outer) { background: #d7f1e4; }
+
+/* Image Scout is intentionally placed next to assessment in v0.3. */
+.image-scout { margin: -2px 0 18px; padding: 14px; border: 1px solid #d9eae3; border-radius: 16px; background: linear-gradient(145deg, #f4fcf8, #f7f8ff); }
+.image-scout-header { align-items: flex-start; margin-bottom: 11px; }
+.scout-title-row { display: flex; align-items: flex-start; gap: 8px; }
+.scout-icon { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 9px; background: #dff6eb; font-size: 15px; }
+.image-scout-header strong { color: var(--jm-ink); font-size: 13px; }
+.image-scout-header p { margin: 3px 0 0; color: var(--jm-muted); font-size: 10px; line-height: 1.45; }
+.scout-state { flex: 0 0 auto; padding: 4px 7px; border-radius: 99px; color: #9c7b3d; background: #fff4d6; font-size: 10px; font-weight: 700; }
+.scout-state.ready { color: #267e62; background: #dff6eb; }
+.image-scout :deep(.el-alert) { padding: 8px 10px; border: 0; border-radius: 10px; background: #fff8e9; }
+.image-scout :deep(.el-alert__title) { color: #896a32; font-size: 10px; line-height: 1.45; }
+.image-candidates { grid-template-columns: 1fr; gap: 9px; margin-top: 10px; }
+.image-candidate-card { display: grid; grid-template-columns: 76px minmax(0, 1fr); border-color: #e0e7e4; border-radius: 12px; }
+.candidate-thumbnail { width: 76px; height: 100%; min-height: 76px; aspect-ratio: auto; }
+.candidate-body { gap: 5px; padding: 8px 9px; }
+.candidate-body strong { font-size: 11px; }
+.candidate-body a, .candidate-size, .candidate-risk-reasons { font-size: 10px; }
+.candidate-body :deep(.el-button) { min-height: 27px; padding: 5px 9px; border-radius: 8px; font-size: 10px; }
+.image-search-message { margin: 8px 0 0; color: var(--jm-muted); font-size: 10px; line-height: 1.45; }
+
+/* Progress, insight and result cards */
+.agent-checklist { margin: 0 0 16px; padding: 11px 10px; border: 1px solid #eee5ef; border-radius: 15px; background: #fffcff; }
+.checklist-item { padding: 7px 8px; border-radius: 9px; font-size: 11px; }
+.checklist-item.running { color: var(--jm-red-deep); background: #fff0f3; }
+.checklist-item.completed { color: #378e74; }
+.check-icon { font-size: 14px; }
+.stage-detail { font-size: 10px; color: var(--jm-muted); }
+.rag-quality { padding: 12px; border: 1px solid #e6e1f4; background: #f9f7ff; }
+.quality-metrics { gap: 8px; color: var(--jm-muted); font-size: 10px; }
+.market-suggestions p, .price-range { color: var(--jm-muted); font-size: 11px; }
+.market-provenance, .market-sources { font-size: 10px; }
+.market-sources a { color: var(--jm-purple); }
+.style-card { border-color: #eadfe5; border-radius: 14px; }
+.style-card.active { border-color: var(--jm-pink); box-shadow: 0 0 0 2px rgba(255, 159, 177, .14); }
+.style-card-body { padding: 10px; }
+.style-card-title { color: var(--jm-ink); font-size: 13px; }
+.style-card-points { color: var(--jm-muted); font-size: 11px; }
+.style-card-footer { padding: 8px 10px; border-color: #eee5e9; background: #fffafa; }
+.style-card-footer :deep(.el-button) { border-radius: 9px; font-size: 10px; }
+.compliance-pass { border-left-color: var(--jm-mint); }
+.compliance-fail { border-left-color: var(--jm-red); }
+.agent-complete { padding: 14px; border: 1px solid #bce7d3; border-radius: 16px; background: linear-gradient(145deg, #f2fcf7, #fffdf2); }
+.complete-heading { display: flex; align-items: center; gap: 8px; }
+.complete-heading h4 { margin-bottom: 4px; }
+.complete-summary { margin: 0; color: #378e74; font-size: 11px; line-height: 1.5; }
+.complete-summary.needs-input { color: #a16e19; }
+.pending-confirmations { border-color: #f2d7a4; border-radius: 10px; background: #fff9ed; color: #86621e; font-size: 10px; }
+.cost-stats { margin-top: 8px; font-size: 10px; }
+.agent-collapsed { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 128px; padding: 16px; border: 1px dashed #ddcedc; border-radius: 20px; color: var(--jm-purple); background: rgba(255, 255, 255, .82); text-align: left; }
+.agent-collapsed > div { display: grid; gap: 3px; }
+.agent-collapsed strong { font-size: 13px; }
+.agent-collapsed span { color: var(--jm-muted); font-size: 10px; line-height: 1.4; }
+.agent-collapsed > .el-icon { margin-left: 4px; color: var(--jm-red); }
+
+.publish-blockers { margin-top: 10px; border-radius: 12px; }
+.publish-actions { margin-top: 26px; padding-top: 18px; border-top: 1px dashed #eadfe5; }
+.publish-actions :deep(.el-form-item__content) { gap: 8px; }
+.publish-actions :deep(.el-button) { min-height: 42px; border-radius: 12px; font-weight: 800; }
+.publish-actions :deep(.el-button--success) { border-color: #5abf9d; background: linear-gradient(135deg, #57c8a1, #3eaa87); box-shadow: 0 7px 16px rgba(63, 170, 135, .19); }
+
+@media (max-width: 1100px) {
+  .studio-header { align-items: flex-start; flex-direction: column; }
+  .editor-actions { width: 100%; justify-content: flex-start; }
+  .studio-stepper { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stepper-hint { display: none; }
+  .stepper-line { right: 10%; }
+}
+@media (max-width: 900px) {
+  .product-editor { padding-inline: 16px; }
+  .studio-stepper { gap: 4px; padding-inline: 9px; }
+  .studio-step { gap: 6px; padding-inline: 5px; }
+  .studio-step small { font-size: 9px; }
+  .editor-main-column, .studio-side-column { width: 100%; max-width: 100%; flex: 0 0 100%; }
+  .agent-panel { position: static; margin-top: 24px; }
+}
+@media (max-width: 620px) {
+  .product-editor { padding-top: 18px; }
+  .studio-title-row { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .studio-title-row h1 { font-size: 28px; }
+  .editor-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .editor-actions :deep(.el-button), .image-search-action { width: 100%; }
+  .image-search-action { grid-column: 1 / -1; max-width: none; }
+  .studio-stepper { min-height: 68px; padding: 9px 5px; }
+  .studio-step { justify-content: center; }
+  .studio-step > div { display: none; }
+  .step-number { width: 30px; height: 30px; }
+  .stepper-line { left: 18%; right: 18%; transform: translateY(0); }
+  .card-heading { align-items: flex-start; }
+  .card-heading h2 { font-size: 19px; }
+  .studio-form :deep(.el-row) { margin-left: 0 !important; margin-right: 0 !important; }
+  .studio-form :deep(.el-col) { width: 100%; max-width: 100%; flex: 0 0 100%; padding-inline: 0 !important; }
+  .image-candidate-card { grid-template-columns: 70px minmax(0, 1fr); }
+  .candidate-thumbnail { width: 70px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-orb, .loading-orbit { animation: none; }
+}
 </style>

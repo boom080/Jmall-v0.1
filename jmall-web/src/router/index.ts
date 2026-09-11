@@ -3,6 +3,9 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(_to, _from, savedPosition) {
+    return savedPosition || { top: 0 }
+  },
   routes: [
     // === Shopper routes ===
     {
@@ -28,7 +31,7 @@ const router = createRouter({
         { path: 'products/new', name: 'merchant-product-new', component: () => import('@/views/merchant/ProductEditor.vue') },
         { path: 'products/:id/published', name: 'merchant-product-published', component: () => import('@/views/merchant/PublishSuccess.vue') },
         { path: 'products/:id', name: 'merchant-product-edit', component: () => import('@/views/merchant/ProductEditor.vue') },
-        { path: 'store', name: 'merchant-store', component: () => import('@/views/merchant/StoreManager.vue') },
+        { path: 'store', redirect: '/merchant' },
         { path: 'knowledge', name: 'merchant-knowledge', component: () => import('@/views/merchant/KnowledgeBase.vue') },
       ],
     },
