@@ -1,0 +1,94 @@
+{
+  "version": "0.3",
+  "brand": {
+    "name": "Jmall",
+    "character": "Pink Bag",
+    "identityLocks": [
+      "coral-pink rounded shopping-bag body",
+      "darker rose arched handle",
+      "dark-plum vertical oval eyes and small smile",
+      "pale-pink blush cheeks",
+      "warm-yellow four-point star at lower-right"
+    ],
+    "colors": {
+      "coral": "#FF6B81",
+      "red": "#FF4D63",
+      "rose": "#C65776",
+      "plum": "#342B4A",
+      "blush": "#FFA3B2",
+      "yellow": "#FFD75E"
+    },
+    "assets": [
+      "brand/jmall-logo-mark.svg",
+      "brand/jmall-logo-lockup.svg",
+      "brand/jmall-app-icon.svg"
+    ]
+  },
+  "mascot": {
+    "poses": {
+      "directory": "mascot/poses",
+      "formats": ["png", "webp"],
+      "count": 4,
+      "alpha": true,
+      "usageNote": "These generated pose renders retain a soft colored glow. Use the SVG brand mark when a clean flat transparent logo is required."
+    },
+    "reward": {
+      "strip": "mascot/reward-strip.png",
+      "frames": "mascot/reward-frames",
+      "preview": "mascot/reward-preview.gif",
+      "layout": "8x1",
+      "frameSize": "272x724",
+      "suggestedTrigger": "task complete, daily check-in, first product published"
+    },
+    "aiLoading": {
+      "frames": "mascot/ai-loading-frames",
+      "preview": "mascot/ai-loading-preview.gif",
+      "layout": "6x1",
+      "frameSize": "256x512"
+    },
+    "publishLoading": {
+      "frames": "mascot/publish-loading-frames",
+      "preview": "mascot/publish-loading-preview.gif",
+      "layout": "6x1",
+      "frameSize": "256x512"
+    },
+    "minigame": {
+      "png": "mascot/minigame-atlas.png",
+      "webp": "mascot/minigame-atlas.webp",
+      "size": "1536x1024",
+      "layout": "irregular concept atlas"
+    },
+    "runtimeNote": "Generated animation frames preserve alpha but contain visible placement and scale drift. Register frames to a shared anchor before using them as production sprite animation."
+  },
+  "designs": {
+    "screens": [
+      "designs/marketplace-home.png",
+      "designs/page-my-products.png",
+      "designs/page-ai-product-studio.png",
+      "designs/page-generation-progress.png",
+      "designs/page-publish-success.png",
+      "designs/page-product-detail.png",
+      "designs/page-storefront.png"
+    ],
+    "mascotStates": [
+      "designs/mascot-identity.png",
+      "designs/mascot-reward.png",
+      "designs/mascot-loading.png",
+      "designs/mascot-minigame.png"
+    ],
+    "interactivePrototypes": [
+      "prototypes/jmall-v03-marketplace.html",
+      "prototypes/jmall-v03-mascot-kit.html",
+      "prototypes/jmall-v03-core-pages.html"
+    ]
+  },
+  "provenance": {
+    "mode": "built-in image generation with the approved mascot screenshot as the identity reference",
+    "promptSet": [
+      "four reusable brand poses",
+      "eight-frame task-complete coin reward",
+      "six-frame AI loading and six-frame publish loading",
+      "mini-game poses and pickup atlas"
+    ]
+  }
+}

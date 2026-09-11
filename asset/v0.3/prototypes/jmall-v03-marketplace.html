@@ -1,0 +1,1941 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Jmall V03 Cute Game Ui</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Jmall V03 Cute Game Ui" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Jmall V03 Cute Game Ui&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress {
+  display: flex;
+  height: 6px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 6px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;jmall-v03-concept&quot;&gt;
+  &lt;header class=&quot;jm-topbar&quot;&gt;
+    &lt;div class=&quot;jm-brand&quot; aria-label=&quot;Jmall&quot;&gt;
+      &lt;span class=&quot;jm-brand-bag&quot; aria-hidden=&quot;true&quot;&gt;🛍️&lt;/span&gt;
+      &lt;span class=&quot;jm-brand-name&quot;&gt;Jmall&lt;/span&gt;
+      &lt;span class=&quot;jm-brand-caption&quot;&gt;AI 电商模拟经营平台&lt;/span&gt;
+    &lt;/div&gt;
+
+    &lt;nav class=&quot;jm-main-nav&quot; aria-label=&quot;主导航&quot;&gt;
+      &lt;button type=&quot;button&quot; class=&quot;jm-nav-item is-active&quot;&gt;好物广场&lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;jm-nav-item&quot;&gt;我的小店&lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;jm-nav-item&quot;&gt;成长任务&lt;/button&gt;
+    &lt;/nav&gt;
+
+    &lt;div class=&quot;jm-player-hud&quot;&gt;
+      &lt;div class=&quot;jm-level&quot; aria-label=&quot;玩家等级 12，经验值 68%&quot;&gt;
+        &lt;span class=&quot;jm-level-number&quot;&gt;Lv.12&lt;/span&gt;
+        &lt;span class=&quot;jm-level-track&quot;&gt;&lt;span class=&quot;jm-level-fill&quot;&gt;&lt;/span&gt;&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;button type=&quot;button&quot; class=&quot;jm-hud-chip&quot; aria-label=&quot;金币 10.9 万&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;🪙&lt;/span&gt;&lt;strong&gt;10.9万&lt;/strong&gt;
+      &lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;jm-hud-chip jm-streak&quot; aria-label=&quot;连续签到 7 天&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;🔥&lt;/span&gt;&lt;strong&gt;7天&lt;/strong&gt;
+      &lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;jm-icon-action&quot; aria-label=&quot;购物车&quot;&gt;🛒&lt;span&gt;2&lt;/span&gt;&lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;jm-avatar&quot; aria-label=&quot;Admin 的个人中心&quot;&gt;A&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;jm-page&quot;&gt;
+    &lt;section class=&quot;jm-hero&quot; aria-labelledby=&quot;jm-hero-title&quot;&gt;
+      &lt;div class=&quot;jm-hero-copy&quot;&gt;
+        &lt;span class=&quot;jm-eyebrow&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;✨&lt;/span&gt; 今日好物已刷新&lt;/span&gt;
+        &lt;h1 id=&quot;jm-hero-title&quot;&gt;今天也来逛点好东西吧！&lt;/h1&gt;
+        &lt;p&gt;发现好物，经营你的小店，赚金币升级&lt;/p&gt;
+        &lt;form class=&quot;jm-search&quot; id=&quot;jm-search-form&quot;&gt;
+          &lt;label class=&quot;jm-sr-only&quot; for=&quot;jm-search-input&quot;&gt;搜索商品&lt;/label&gt;
+          &lt;span class=&quot;jm-search-icon&quot; aria-hidden=&quot;true&quot;&gt;⌕&lt;/span&gt;
+          &lt;input id=&quot;jm-search-input&quot; type=&quot;search&quot; placeholder=&quot;搜商品、店铺或灵感…&quot;&gt;
+          &lt;button type=&quot;button&quot; id=&quot;jm-search-button&quot;&gt;搜索&lt;/button&gt;
+        &lt;/form&gt;
+        &lt;div class=&quot;jm-hotwords&quot; aria-label=&quot;热门搜索&quot;&gt;
+          &lt;span&gt;大家在搜：&lt;/span&gt;
+          &lt;button type=&quot;button&quot;&gt;通勤好物&lt;/button&gt;
+          &lt;button type=&quot;button&quot;&gt;秋日上新&lt;/button&gt;
+          &lt;button type=&quot;button&quot;&gt;治愈小物&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;jm-hero-mascot&quot; aria-label=&quot;Jmall 购物袋吉祥物&quot;&gt;
+        &lt;span class=&quot;jm-sparkle jm-sparkle-one&quot; aria-hidden=&quot;true&quot;&gt;✦&lt;/span&gt;
+        &lt;span class=&quot;jm-sparkle jm-sparkle-two&quot; aria-hidden=&quot;true&quot;&gt;✦&lt;/span&gt;
+        &lt;div class=&quot;jm-mascot-handle&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;jm-mascot-body&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;span class=&quot;jm-eye jm-eye-left&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;jm-eye jm-eye-right&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;jm-mouth&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;jm-cheek jm-cheek-left&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;jm-cheek jm-cheek-right&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;jm-mascot-star&quot;&gt;★&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;jm-mascot-shadow&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
+        &lt;span class=&quot;jm-mascot-copy&quot;&gt;今天也要发现惊喜！&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;jm-mission&quot; aria-label=&quot;今日任务&quot;&gt;
+      &lt;div class=&quot;jm-mission-icon&quot; aria-hidden=&quot;true&quot;&gt;🎯&lt;/div&gt;
+      &lt;div class=&quot;jm-mission-copy&quot;&gt;
+        &lt;div&gt;&lt;strong&gt;今日任务&lt;/strong&gt;&lt;span&gt;浏览 3 件好物&lt;/span&gt;&lt;/div&gt;
+        &lt;div class=&quot;jm-mission-track&quot; role=&quot;progressbar&quot; aria-label=&quot;今日任务进度&quot; aria-valuemin=&quot;0&quot; aria-valuemax=&quot;3&quot; aria-valuenow=&quot;2&quot;&gt;
+          &lt;span id=&quot;jm-mission-fill&quot;&gt;&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;strong class=&quot;jm-mission-count&quot; id=&quot;jm-mission-count&quot;&gt;2/3&lt;/strong&gt;
+      &lt;span class=&quot;jm-reward&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🪙&lt;/span&gt; +50 金币&lt;/span&gt;
+      &lt;button type=&quot;button&quot; id=&quot;jm-reward-button&quot; disabled&gt;再逛 1 件&lt;/button&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;jm-discovery&quot; aria-label=&quot;好物筛选与列表&quot;&gt;
+      &lt;div class=&quot;jm-section-head&quot;&gt;
+        &lt;div&gt;
+          &lt;span class=&quot;jm-section-kicker&quot;&gt;DISCOVER&lt;/span&gt;
+          &lt;h2&gt;发现好物&lt;/h2&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;jm-sort&quot;&gt;
+          &lt;span&gt;为你找到 &lt;strong id=&quot;jm-result-count&quot;&gt;8&lt;/strong&gt; 件好物&lt;/span&gt;
+          &lt;button type=&quot;button&quot;&gt;综合排序⌄&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;jm-filters&quot; role=&quot;group&quot; aria-label=&quot;商品筛选&quot;&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-filter is-selected&quot; data-filter=&quot;all&quot; aria-pressed=&quot;true&quot;&gt;&lt;span&gt;🏠&lt;/span&gt;全部&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-filter&quot; data-filter=&quot;featured&quot; aria-pressed=&quot;false&quot;&gt;&lt;span&gt;💖&lt;/span&gt;今日推荐&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-filter&quot; data-filter=&quot;new&quot; aria-pressed=&quot;false&quot;&gt;&lt;span&gt;🎁&lt;/span&gt;新品掉落&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-filter&quot; data-filter=&quot;popular&quot; aria-pressed=&quot;false&quot;&gt;&lt;span&gt;🔥&lt;/span&gt;人气榜&lt;/button&gt;
+        &lt;span class=&quot;jm-filter-divider&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-platform-filter&quot;&gt;拼多多风&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-platform-filter&quot;&gt;淘宝风&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-platform-filter&quot;&gt;京东风&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;jm-platform-filter&quot;&gt;小红书风&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;jm-product-grid&quot; id=&quot;jm-product-grid&quot;&gt;
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;featured popular&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-cup-art&quot;&gt;
+            &lt;span class=&quot;jm-rarity&quot;&gt;💖 今日精选&lt;/span&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏轻量通勤保温杯&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-cup&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;淘宝风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;家居日用&lt;/span&gt;
+            &lt;h3&gt;轻量通勤保温杯 500ml&lt;/h3&gt;
+            &lt;p&gt;食品级 304 不锈钢，杯盖可拆洗，长效保温&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; Demo 品质好物馆&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 128&lt;/span&gt;&lt;span&gt;📦 23 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥59.90&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;new featured&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-pillow-art&quot;&gt;
+            &lt;span class=&quot;jm-rarity jm-rarity-new&quot;&gt;🎁 新发现&lt;/span&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏云朵护颈 U 型枕&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-pillow&quot; aria-hidden=&quot;true&quot;&gt;☁&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;小红书风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;家居日用&lt;/span&gt;
+            &lt;h3&gt;云朵护颈 U 型枕&lt;/h3&gt;
+            &lt;p&gt;柔软亲肤，办公室午休与旅行都轻松&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; 治愈生活研究所&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 86&lt;/span&gt;&lt;span&gt;📦 12 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥79.90&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;popular&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-tea-art&quot;&gt;
+            &lt;span class=&quot;jm-rarity jm-rarity-hot&quot;&gt;🔥 人气&lt;/span&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏明前特级西湖龙井&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-tea&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;茶&lt;/span&gt;&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;淘宝风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;食品饮料&lt;/span&gt;
+            &lt;h3&gt;明前特级西湖龙井 50g&lt;/h3&gt;
+            &lt;p&gt;2026 年新茶，明前采摘，清香鲜爽&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; 山野茶事&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 246&lt;/span&gt;&lt;span&gt;📦 48 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥128.00&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;new&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-robot-art&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏奶油白扫拖机器人&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-robot&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;•‿•&lt;/span&gt;&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;京东风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;数码家电&lt;/span&gt;
+            &lt;h3&gt;奶油白扫拖机器人&lt;/h3&gt;
+            &lt;p&gt;智能导航，自动集尘，适合家庭与办公室&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; 智慧家电站&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 198&lt;/span&gt;&lt;span&gt;📦 16 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥1999&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;featured&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-headphone-art&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏奶油色降噪耳机&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-headphone&quot; aria-hidden=&quot;true&quot;&gt;🎧&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;小红书风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;手机数码&lt;/span&gt;
+            &lt;h3&gt;奶油色降噪耳机&lt;/h3&gt;
+            &lt;p&gt;轻盈佩戴，沉浸降噪，通勤音乐搭子&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; 今日数码铺&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 73&lt;/span&gt;&lt;span&gt;📦 8 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥299.00&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;popular featured&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-shoe-art&quot;&gt;
+            &lt;span class=&quot;jm-rarity jm-rarity-hot&quot;&gt;🔥 人气&lt;/span&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏软弹城市漫步鞋&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-shoe&quot; aria-hidden=&quot;true&quot;&gt;👟&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;拼多多风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;服饰鞋包&lt;/span&gt;
+            &lt;h3&gt;软弹城市漫步鞋&lt;/h3&gt;
+            &lt;p&gt;轻盈缓震，日常通勤久走也舒适&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; 好走路商店&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 321&lt;/span&gt;&lt;span&gt;📦 66 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥168.00&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;new&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-cookie-art&quot;&gt;
+            &lt;span class=&quot;jm-rarity jm-rarity-new&quot;&gt;🎁 新发现&lt;/span&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏低糖巧克力曲奇&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-cookie&quot; aria-hidden=&quot;true&quot;&gt;🍪&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;淘宝风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;食品饮料&lt;/span&gt;
+            &lt;h3&gt;低糖巧克力曲奇 12 枚&lt;/h3&gt;
+            &lt;p&gt;酥脆可可香，下午茶的小份快乐&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; 小口袋烘焙屋&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 64&lt;/span&gt;&lt;span&gt;📦 9 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥29.90&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+
+        &lt;article class=&quot;jm-product&quot; data-groups=&quot;popular&quot;&gt;
+          &lt;div class=&quot;jm-product-art jm-lamp-art&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;jm-heart&quot; aria-label=&quot;收藏晚安蘑菇小夜灯&quot; aria-pressed=&quot;false&quot;&gt;♡&lt;/button&gt;
+            &lt;div class=&quot;jm-lamp&quot; aria-hidden=&quot;true&quot;&gt;🍄&lt;/div&gt;
+            &lt;span class=&quot;jm-platform&quot;&gt;小红书风&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;jm-product-body&quot;&gt;
+            &lt;span class=&quot;jm-category&quot;&gt;家居日用&lt;/span&gt;
+            &lt;h3&gt;晚安蘑菇小夜灯&lt;/h3&gt;
+            &lt;p&gt;柔和暖光，轻触调亮，让床头更治愈&lt;/p&gt;
+            &lt;div class=&quot;jm-store&quot;&gt;&lt;span aria-hidden=&quot;true&quot;&gt;🏪&lt;/span&gt; 晚安杂货铺&lt;/div&gt;
+            &lt;div class=&quot;jm-product-meta&quot;&gt;&lt;span&gt;👀 152&lt;/span&gt;&lt;span&gt;📦 31 已售&lt;/span&gt;&lt;/div&gt;
+            &lt;div class=&quot;jm-product-foot&quot;&gt;&lt;strong&gt;¥49.90&lt;/strong&gt;&lt;button type=&quot;button&quot; class=&quot;jm-visit&quot;&gt;逛逛好物&lt;/button&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+
+      &lt;nav class=&quot;jm-pagination&quot; aria-label=&quot;分页&quot;&gt;
+        &lt;button type=&quot;button&quot; aria-label=&quot;上一页&quot;&gt;‹&lt;/button&gt;
+        &lt;button type=&quot;button&quot; class=&quot;is-current&quot; aria-current=&quot;page&quot;&gt;1&lt;/button&gt;
+        &lt;button type=&quot;button&quot;&gt;2&lt;/button&gt;
+        &lt;button type=&quot;button&quot;&gt;3&lt;/button&gt;
+        &lt;button type=&quot;button&quot; aria-label=&quot;下一页&quot;&gt;›&lt;/button&gt;
+      &lt;/nav&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+
+  &lt;button type=&quot;button&quot; class=&quot;jm-ai-helper&quot; id=&quot;jm-ai-helper&quot; aria-expanded=&quot;false&quot;&gt;
+    &lt;span aria-hidden=&quot;true&quot;&gt;✦&lt;/span&gt;&lt;strong&gt;AI 店员&lt;/strong&gt;
+  &lt;/button&gt;
+  &lt;div class=&quot;jm-ai-bubble&quot; id=&quot;jm-ai-bubble&quot; hidden aria-live=&quot;polite&quot;&gt;
+    &lt;strong&gt;要我帮你挑一挑吗？&lt;/strong&gt;
+    &lt;span&gt;告诉我预算和场景，我来找好物 ✨&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;jm-toast&quot; id=&quot;jm-toast&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+#jmall-v03-concept {
+  --jm-page: light-dark(#fff9f0, #241d2d);
+  --jm-topbar: light-dark(#fffefd, #30263c);
+  --jm-surface: light-dark(#ffffff, #382d46);
+  --jm-surface-soft: light-dark(#fff3e3, #44364c);
+  --jm-text: light-dark(#342b4a, #fff7ec);
+  --jm-muted: light-dark(#857b8f, #c5b8cc);
+  --jm-line: light-dark(#efe3d8, #52435f);
+  --jm-pink: light-dark(#ff6b81, #ff8093);
+  --jm-red: light-dark(#ff4d5e, #ff6876);
+  --jm-purple: light-dark(#8b7cf6, #a698ff);
+  --jm-mint: light-dark(#75d6b1, #64caa3);
+  --jm-yellow: light-dark(#ffd76a, #e7bc48);
+  --jm-shadow: light-dark(rgba(96, 67, 74, .13), rgba(0, 0, 0, .3));
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  color: var(--jm-text);
+  background:
+    radial-gradient(circle at 9% 19%, color-mix(in srgb, var(--jm-yellow) 25%, transparent) 0 3px, transparent 4px),
+    radial-gradient(circle at 93% 12%, color-mix(in srgb, var(--jm-pink) 23%, transparent) 0 4px, transparent 5px),
+    var(--jm-page);
+  font-family: ui-rounded, &quot;SF Pro Rounded&quot;, &quot;PingFang SC&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+  border-radius: 24px;
+}
+
+#jmall-v03-concept * { box-sizing: border-box; }
+#jmall-v03-concept button,
+#jmall-v03-concept input { font: inherit; }
+#jmall-v03-concept button { color: inherit; }
+#jmall-v03-concept .jm-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#jmall-v03-concept .jm-topbar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-height: 72px;
+  padding: 12px 28px;
+  background: color-mix(in srgb, var(--jm-topbar) 96%, transparent);
+  border-bottom: 1px solid var(--jm-line);
+}
+
+#jmall-v03-concept .jm-brand,
+#jmall-v03-concept .jm-player-hud,
+#jmall-v03-concept .jm-main-nav,
+#jmall-v03-concept .jm-level,
+#jmall-v03-concept .jm-hud-chip,
+#jmall-v03-concept .jm-hotwords,
+#jmall-v03-concept .jm-mission,
+#jmall-v03-concept .jm-mission-copy &gt; div:first-child,
+#jmall-v03-concept .jm-section-head,
+#jmall-v03-concept .jm-sort,
+#jmall-v03-concept .jm-filters,
+#jmall-v03-concept .jm-store,
+#jmall-v03-concept .jm-product-meta,
+#jmall-v03-concept .jm-product-foot,
+#jmall-v03-concept .jm-pagination { display: flex; align-items: center; }
+
+#jmall-v03-concept .jm-brand { gap: 8px; min-width: max-content; }
+#jmall-v03-concept .jm-brand-bag { font-size: 26px; transform: rotate(-6deg); }
+#jmall-v03-concept .jm-brand-name { font-size: 24px; font-weight: 500; letter-spacing: -.7px; }
+#jmall-v03-concept .jm-brand-caption { color: var(--jm-muted); font-size: 12px; margin-left: 3px; }
+
+#jmall-v03-concept .jm-main-nav { gap: 6px; margin-right: auto; }
+#jmall-v03-concept .jm-nav-item,
+#jmall-v03-concept .jm-platform-filter {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+#jmall-v03-concept .jm-nav-item { padding: 10px 12px; border-radius: 12px; font-size: 14px; }
+#jmall-v03-concept .jm-nav-item.is-active { color: var(--jm-red); background: color-mix(in srgb, var(--jm-pink) 12%, var(--jm-surface)); font-weight: 500; }
+
+#jmall-v03-concept .jm-player-hud { gap: 8px; }
+#jmall-v03-concept .jm-level { gap: 8px; padding: 8px 11px; background: var(--jm-surface-soft); border-radius: 14px; }
+#jmall-v03-concept .jm-level-number { color: var(--jm-purple); font-size: 12px; font-weight: 500; }
+#jmall-v03-concept .jm-level-track { width: 54px; height: 6px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--jm-purple) 15%, var(--jm-surface)); }
+#jmall-v03-concept .jm-level-fill { display: block; width: 68%; height: 100%; border-radius: inherit; background: var(--jm-purple); }
+#jmall-v03-concept .jm-hud-chip { gap: 4px; min-height: 40px; padding: 0 12px; border: 1px solid color-mix(in srgb, var(--jm-yellow) 70%, var(--jm-line)); border-radius: 14px; background: color-mix(in srgb, var(--jm-yellow) 12%, var(--jm-surface)); cursor: pointer; }
+#jmall-v03-concept .jm-hud-chip strong { color: light-dark(#c78314, #ffd76a); font-weight: 500; }
+#jmall-v03-concept .jm-streak { border-color: color-mix(in srgb, var(--jm-pink) 35%, var(--jm-line)); background: color-mix(in srgb, var(--jm-pink) 8%, var(--jm-surface)); }
+#jmall-v03-concept .jm-streak strong { color: var(--jm-red); }
+#jmall-v03-concept .jm-icon-action,
+#jmall-v03-concept .jm-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--jm-line);
+  border-radius: 14px;
+  background: var(--jm-surface);
+  cursor: pointer;
+}
+#jmall-v03-concept .jm-icon-action span { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 1px 4px; color: #fff; background: var(--jm-red); border-radius: 99px; font-size: 10px; }
+#jmall-v03-concept .jm-avatar { border-radius: 50%; color: #fff; background: var(--jm-purple); font-weight: 500; }
+
+#jmall-v03-concept .jm-page { padding: 22px 28px 48px; }
+#jmall-v03-concept .jm-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(220px, .5fr);
+  align-items: center;
+  min-height: 300px;
+  padding: 38px 52px;
+  overflow: hidden;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--jm-yellow) 44%, transparent) 0 7%, transparent 7.5%),
+    radial-gradient(circle at 90% 70%, color-mix(in srgb, var(--jm-mint) 42%, transparent) 0 11%, transparent 11.5%),
+    linear-gradient(135deg, light-dark(#ffe7df, #493344), light-dark(#f0e8ff, #3d355c));
+}
+#jmall-v03-concept .jm-hero::before,
+#jmall-v03-concept .jm-hero::after { content: &quot;&quot;; position: absolute; border-radius: 50%; background: color-mix(in srgb, var(--jm-surface) 45%, transparent); }
+#jmall-v03-concept .jm-hero::before { width: 160px; height: 160px; left: -55px; bottom: -80px; }
+#jmall-v03-concept .jm-hero::after { width: 82px; height: 82px; right: 33%; top: -45px; }
+#jmall-v03-concept .jm-hero-copy { position: relative; z-index: 2; max-width: 660px; }
+#jmall-v03-concept .jm-eyebrow,
+#jmall-v03-concept .jm-section-kicker,
+#jmall-v03-concept .jm-category,
+#jmall-v03-concept .jm-rarity,
+#jmall-v03-concept .jm-platform,
+#jmall-v03-concept .jm-reward { display: inline-flex; align-items: center; }
+#jmall-v03-concept .jm-eyebrow { gap: 4px; padding: 6px 10px; color: var(--jm-red); background: color-mix(in srgb, var(--jm-surface) 72%, transparent); border-radius: 99px; font-size: 12px; font-weight: 500; }
+#jmall-v03-concept .jm-hero h1 { margin: 14px 0 4px; font-size: clamp(28px, 4vw, 46px); line-height: 1.12; font-weight: 500; letter-spacing: -1.2px; }
+#jmall-v03-concept .jm-hero p { margin: 0; color: var(--jm-muted); font-size: 15px; }
+#jmall-v03-concept .jm-search { display: flex; align-items: center; max-width: 620px; margin-top: 24px; padding: 5px; border: 2px solid color-mix(in srgb, var(--jm-surface) 78%, transparent); border-radius: 16px; background: var(--jm-surface); box-shadow: 0 12px 30px var(--jm-shadow); }
+#jmall-v03-concept .jm-search-icon { padding-left: 12px; color: var(--jm-purple); font-size: 22px; }
+#jmall-v03-concept .jm-search input { min-width: 0; flex: 1; height: 42px; padding: 0 12px; color: var(--jm-text); border: 0; outline: none; background: transparent; font-size: 15px; }
+#jmall-v03-concept .jm-search input::placeholder { color: var(--jm-muted); }
+#jmall-v03-concept .jm-search button,
+#jmall-v03-concept .jm-mission button,
+#jmall-v03-concept .jm-visit {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--jm-red);
+  cursor: pointer;
+  font-weight: 500;
+}
+#jmall-v03-concept .jm-hotwords { gap: 9px; margin-top: 11px; color: var(--jm-muted); font-size: 11px; }
+#jmall-v03-concept .jm-hotwords button { padding: 0; border: 0; color: var(--jm-purple); background: transparent; cursor: pointer; }
+
+#jmall-v03-concept .jm-hero-mascot { position: relative; z-index: 2; min-height: 230px; display: grid; place-items: center; }
+#jmall-v03-concept .jm-mascot-handle { position: absolute; top: 22px; width: 86px; height: 72px; border: 13px solid light-dark(#c25d78, #ff8093); border-bottom: 0; border-radius: 48px 48px 0 0; }
+#jmall-v03-concept .jm-mascot-body { position: relative; width: 164px; height: 158px; margin-top: 28px; border-radius: 32px 32px 44px 44px; background: linear-gradient(155deg, var(--jm-pink), var(--jm-red)); box-shadow: 0 18px 30px color-mix(in srgb, var(--jm-red) 28%, transparent); transform: rotate(3deg); }
+#jmall-v03-concept .jm-eye { position: absolute; top: 58px; width: 13px; height: 18px; border-radius: 50%; background: #342b4a; }
+#jmall-v03-concept .jm-eye-left { left: 50px; }
+#jmall-v03-concept .jm-eye-right { right: 50px; }
+#jmall-v03-concept .jm-mouth { position: absolute; left: 72px; top: 86px; width: 22px; height: 12px; border-bottom: 4px solid #342b4a; border-radius: 50%; }
+#jmall-v03-concept .jm-cheek { position: absolute; top: 84px; width: 19px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.35); }
+#jmall-v03-concept .jm-cheek-left { left: 26px; }
+#jmall-v03-concept .jm-cheek-right { right: 26px; }
+#jmall-v03-concept .jm-mascot-star { position: absolute; right: 16px; bottom: 14px; color: var(--jm-yellow); font-size: 30px; transform: rotate(12deg); }
+#jmall-v03-concept .jm-mascot-shadow { position: absolute; bottom: 22px; width: 144px; height: 24px; border-radius: 50%; background: rgba(52,43,74,.13); filter: blur(2px); }
+#jmall-v03-concept .jm-mascot-copy { position: absolute; right: -10px; top: 25px; padding: 7px 11px; border-radius: 13px 13px 13px 4px; background: var(--jm-surface); box-shadow: 0 8px 18px var(--jm-shadow); font-size: 11px; }
+#jmall-v03-concept .jm-sparkle { position: absolute; color: var(--jm-yellow); font-size: 28px; }
+#jmall-v03-concept .jm-sparkle-one { left: 10px; top: 34px; }
+#jmall-v03-concept .jm-sparkle-two { right: 8px; bottom: 55px; color: var(--jm-mint); font-size: 20px; }
+
+#jmall-v03-concept .jm-mission { gap: 14px; margin: 16px 0 26px; padding: 13px 16px; border: 1px solid color-mix(in srgb, var(--jm-yellow) 52%, var(--jm-line)); border-radius: 18px; background: color-mix(in srgb, var(--jm-yellow) 10%, var(--jm-surface)); }
+#jmall-v03-concept .jm-mission-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: color-mix(in srgb, var(--jm-yellow) 25%, var(--jm-surface)); }
+#jmall-v03-concept .jm-mission-copy { min-width: 160px; flex: 1; }
+#jmall-v03-concept .jm-mission-copy &gt; div:first-child { gap: 10px; font-size: 12px; }
+#jmall-v03-concept .jm-mission-copy &gt; div:first-child span { color: var(--jm-muted); }
+#jmall-v03-concept .jm-mission-track { height: 7px; margin-top: 7px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--jm-yellow) 20%, var(--jm-surface)); }
+#jmall-v03-concept .jm-mission-track span { display: block; width: 66.666%; height: 100%; border-radius: inherit; background: var(--jm-yellow); transition: width .25s ease; }
+#jmall-v03-concept .jm-mission-count { color: light-dark(#b97515, #ffd76a); }
+#jmall-v03-concept .jm-reward { gap: 4px; color: light-dark(#a66a11, #ffd76a); font-size: 12px; }
+#jmall-v03-concept .jm-mission button { min-height: 36px; background: var(--jm-purple); font-size: 12px; }
+#jmall-v03-concept .jm-mission button:disabled { cursor: not-allowed; opacity: .5; }
+
+#jmall-v03-concept .jm-section-head { justify-content: space-between; gap: 20px; margin-bottom: 14px; }
+#jmall-v03-concept .jm-section-kicker { color: var(--jm-pink); font-size: 10px; letter-spacing: 1.6px; font-weight: 500; }
+#jmall-v03-concept .jm-section-head h2 { margin: 2px 0 0; font-size: 26px; font-weight: 500; }
+#jmall-v03-concept .jm-sort { gap: 12px; color: var(--jm-muted); font-size: 12px; }
+#jmall-v03-concept .jm-sort strong { color: var(--jm-red); }
+#jmall-v03-concept .jm-sort button { min-height: 38px; padding: 0 12px; border: 1px solid var(--jm-line); border-radius: 12px; background: var(--jm-surface); cursor: pointer; }
+
+#jmall-v03-concept .jm-filters { gap: 7px; margin-bottom: 17px; flex-wrap: wrap; }
+#jmall-v03-concept .jm-filter,
+#jmall-v03-concept .jm-platform-filter { min-height: 38px; padding: 0 12px; border: 1px solid var(--jm-line); border-radius: 12px; background: var(--jm-surface); cursor: pointer; font-size: 12px; }
+#jmall-v03-concept .jm-filter span { margin-right: 4px; }
+#jmall-v03-concept .jm-filter.is-selected { color: #fff; border-color: var(--jm-red); background: var(--jm-red); box-shadow: 0 7px 16px color-mix(in srgb, var(--jm-red) 23%, transparent); }
+#jmall-v03-concept .jm-filter-divider { width: 1px; height: 22px; margin: 0 3px; background: var(--jm-line); }
+#jmall-v03-concept .jm-platform-filter { min-height: 32px; color: var(--jm-muted); border-style: dashed; background: transparent; }
+
+#jmall-v03-concept .jm-product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+#jmall-v03-concept .jm-product { overflow: hidden; border: 1px solid var(--jm-line); border-radius: 22px; background: var(--jm-surface); box-shadow: 0 12px 28px var(--jm-shadow); transition: transform .18s ease, box-shadow .18s ease; }
+#jmall-v03-concept .jm-product:hover { transform: translateY(-4px); box-shadow: 0 18px 34px var(--jm-shadow); }
+#jmall-v03-concept .jm-product[hidden] { display: none; }
+#jmall-v03-concept .jm-product-art { position: relative; display: grid; place-items: center; min-height: 180px; overflow: hidden; background: var(--jm-surface-soft); }
+#jmall-v03-concept .jm-product-art::before { content: &quot;&quot;; position: absolute; width: 116px; height: 116px; border-radius: 50%; background: color-mix(in srgb, var(--jm-surface) 58%, transparent); }
+#jmall-v03-concept .jm-cup-art { background: linear-gradient(145deg, light-dark(#e8f7ff, #2f4350), light-dark(#e5f2ee, #304740)); }
+#jmall-v03-concept .jm-pillow-art { background: linear-gradient(145deg, light-dark(#f1ecff, #41395c), light-dark(#ffe8f1, #51333f)); }
+#jmall-v03-concept .jm-tea-art { background: linear-gradient(145deg, light-dark(#edf9de, #35462d), light-dark(#fff3d7, #4c402b)); }
+#jmall-v03-concept .jm-robot-art { background: linear-gradient(145deg, light-dark(#e7f8f5, #294842), light-dark(#f1edff, #3f3854)); }
+#jmall-v03-concept .jm-headphone-art { background: linear-gradient(145deg, light-dark(#fff0e3, #4b392e), light-dark(#ffe8f0, #513440)); }
+#jmall-v03-concept .jm-shoe-art { background: linear-gradient(145deg, light-dark(#e8f2ff, #2d3e53), light-dark(#effbe4, #35492e)); }
+#jmall-v03-concept .jm-cookie-art { background: linear-gradient(145deg, light-dark(#fff3dc, #4d402b), light-dark(#ffe9df, #51382f)); }
+#jmall-v03-concept .jm-lamp-art { background: linear-gradient(145deg, light-dark(#f2e8ff, #423655), light-dark(#fff2d1, #4c4028)); }
+#jmall-v03-concept .jm-rarity { position: absolute; z-index: 3; left: 10px; top: 10px; gap: 3px; padding: 5px 8px; color: #fff; background: var(--jm-pink); border-radius: 9px; font-size: 10px; font-weight: 500; }
+#jmall-v03-concept .jm-rarity-new { background: var(--jm-purple); }
+#jmall-v03-concept .jm-rarity-hot { background: var(--jm-red); }
+#jmall-v03-concept .jm-heart { position: absolute; z-index: 3; right: 10px; top: 10px; display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; color: var(--jm-pink); background: color-mix(in srgb, var(--jm-surface) 90%, transparent); cursor: pointer; font-size: 21px; box-shadow: 0 5px 14px var(--jm-shadow); }
+#jmall-v03-concept .jm-heart[aria-pressed=&quot;true&quot;] { color: #fff; background: var(--jm-pink); }
+#jmall-v03-concept .jm-platform { position: absolute; z-index: 3; right: 10px; bottom: 10px; padding: 4px 7px; color: var(--jm-muted); background: color-mix(in srgb, var(--jm-surface) 88%, transparent); border-radius: 8px; font-size: 9px; }
+#jmall-v03-concept .jm-cup { position: relative; z-index: 2; width: 78px; height: 114px; border-radius: 14px 14px 25px 25px; background: linear-gradient(90deg, #ffffff, #dcebf0 60%, #c5dce5); box-shadow: 0 15px 19px rgba(52,43,74,.14); }
+#jmall-v03-concept .jm-cup::before { content: &quot;&quot;; position: absolute; left: -3px; top: -12px; width: 84px; height: 22px; border-radius: 12px; background: #ff8da0; }
+#jmall-v03-concept .jm-cup span { position: absolute; left: 25px; top: 42px; width: 28px; height: 28px; border-radius: 50%; background: var(--jm-yellow); }
+#jmall-v03-concept .jm-pillow { position: relative; z-index: 2; color: #fff; font-size: 110px; line-height: 1; filter: drop-shadow(0 12px 10px rgba(79,55,91,.14)); }
+#jmall-v03-concept .jm-tea { position: relative; z-index: 2; display: grid; place-items: center; width: 98px; height: 82px; border-radius: 8px 8px 18px 18px; color: #fff; background: linear-gradient(135deg, #86b657, #537e34); box-shadow: 0 13px 18px rgba(60,92,43,.2); }
+#jmall-v03-concept .jm-tea::before { content: &quot;&quot;; position: absolute; top: -16px; width: 80px; height: 21px; border-radius: 50%; background: #dfe8bd; border: 5px solid #6e9549; }
+#jmall-v03-concept .jm-tea span { font-size: 28px; font-weight: 500; }
+#jmall-v03-concept .jm-robot { position: relative; z-index: 2; display: grid; place-items: center; width: 112px; height: 62px; border-radius: 50%; color: #65727f; background: linear-gradient(#fff, #dce8ea); border: 6px solid #f7fbfc; box-shadow: 0 14px 18px rgba(52,43,74,.16); }
+#jmall-v03-concept .jm-robot::before { content: &quot;&quot;; position: absolute; top: -20px; width: 36px; height: 28px; border-radius: 12px 12px 5px 5px; background: #93a7ac; }
+#jmall-v03-concept .jm-robot span { margin-top: 5px; font-size: 16px; }
+#jmall-v03-concept .jm-headphone,
+#jmall-v03-concept .jm-shoe,
+#jmall-v03-concept .jm-cookie,
+#jmall-v03-concept .jm-lamp { position: relative; z-index: 2; font-size: 86px; filter: drop-shadow(0 12px 10px rgba(52,43,74,.15)); }
+
+#jmall-v03-concept .jm-product-body { padding: 15px; }
+#jmall-v03-concept .jm-category { padding: 3px 7px; border-radius: 8px; color: var(--jm-purple); background: color-mix(in srgb, var(--jm-purple) 11%, var(--jm-surface)); font-size: 9px; font-weight: 500; }
+#jmall-v03-concept .jm-product h3 { min-height: 42px; margin: 9px 0 4px; font-size: 15px; line-height: 1.4; font-weight: 500; }
+#jmall-v03-concept .jm-product p { min-height: 34px; margin: 0; color: var(--jm-muted); font-size: 11px; line-height: 1.5; }
+#jmall-v03-concept .jm-store { gap: 4px; margin-top: 10px; color: var(--jm-red); font-size: 10px; }
+#jmall-v03-concept .jm-product-meta { gap: 10px; margin-top: 7px; color: var(--jm-muted); font-size: 9px; }
+#jmall-v03-concept .jm-product-foot { justify-content: space-between; gap: 8px; margin-top: 12px; }
+#jmall-v03-concept .jm-product-foot strong { color: var(--jm-red); font-size: 20px; font-weight: 500; }
+#jmall-v03-concept .jm-visit { min-height: 34px; padding: 0 11px; background: color-mix(in srgb, var(--jm-pink) 12%, var(--jm-surface)); color: var(--jm-red); font-size: 10px; }
+
+#jmall-v03-concept .jm-pagination { justify-content: center; gap: 6px; margin-top: 24px; }
+#jmall-v03-concept .jm-pagination button { width: 36px; height: 36px; border: 1px solid var(--jm-line); border-radius: 11px; background: var(--jm-surface); cursor: pointer; }
+#jmall-v03-concept .jm-pagination .is-current { color: #fff; border-color: var(--jm-red); background: var(--jm-red); }
+
+#jmall-v03-concept .jm-ai-helper { position: absolute; right: 18px; top: 520px; z-index: 8; display: flex; align-items: center; gap: 6px; padding: 11px 13px; border: 0; border-radius: 18px; color: #fff; background: linear-gradient(135deg, var(--jm-pink), var(--jm-red)); box-shadow: 0 12px 26px color-mix(in srgb, var(--jm-red) 28%, transparent); cursor: pointer; }
+#jmall-v03-concept .jm-ai-helper span { font-size: 20px; }
+#jmall-v03-concept .jm-ai-helper strong { font-size: 11px; font-weight: 500; }
+#jmall-v03-concept .jm-ai-bubble { position: absolute; right: 22px; top: 574px; z-index: 7; display: grid; gap: 3px; width: 220px; padding: 13px; border: 1px solid var(--jm-line); border-radius: 15px 4px 15px 15px; background: var(--jm-surface); box-shadow: 0 14px 28px var(--jm-shadow); }
+#jmall-v03-concept .jm-ai-bubble[hidden] { display: none; }
+#jmall-v03-concept .jm-ai-bubble strong { font-size: 12px; font-weight: 500; }
+#jmall-v03-concept .jm-ai-bubble span { color: var(--jm-muted); font-size: 10px; line-height: 1.5; }
+#jmall-v03-concept .jm-toast { position: absolute; left: 50%; bottom: 22px; z-index: 20; transform: translate(-50%, 14px); padding: 9px 13px; border-radius: 12px; color: var(--jm-text); background: var(--jm-surface); box-shadow: 0 10px 24px var(--jm-shadow); opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; font-size: 11px; }
+#jmall-v03-concept .jm-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 900px) {
+  #jmall-v03-concept .jm-main-nav { display: none; }
+  #jmall-v03-concept .jm-brand-caption,
+  #jmall-v03-concept .jm-streak { display: none; }
+  #jmall-v03-concept .jm-player-hud { margin-left: auto; }
+  #jmall-v03-concept .jm-hero { grid-template-columns: minmax(0, 1fr) 190px; padding: 30px; }
+  #jmall-v03-concept .jm-mascot-body { width: 140px; height: 142px; }
+  #jmall-v03-concept .jm-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  #jmall-v03-concept { border-radius: 16px; }
+  #jmall-v03-concept .jm-topbar { min-height: auto; padding: 10px 14px; gap: 10px; flex-wrap: wrap; }
+  #jmall-v03-concept .jm-brand { flex: 1; }
+  #jmall-v03-concept .jm-brand-name { font-size: 20px; }
+  #jmall-v03-concept .jm-level,
+  #jmall-v03-concept .jm-icon-action { display: none; }
+  #jmall-v03-concept .jm-hud-chip { min-height: 36px; }
+  #jmall-v03-concept .jm-page { padding: 12px 12px 34px; }
+  #jmall-v03-concept .jm-hero { display: block; min-height: auto; padding: 24px 18px; border-radius: 22px; }
+  #jmall-v03-concept .jm-hero h1 { font-size: 30px; }
+  #jmall-v03-concept .jm-hero-mascot { display: none; }
+  #jmall-v03-concept .jm-search { margin-top: 18px; }
+  #jmall-v03-concept .jm-search button { padding: 0 13px; }
+  #jmall-v03-concept .jm-hotwords { flex-wrap: wrap; }
+  #jmall-v03-concept .jm-mission { align-items: flex-start; flex-wrap: wrap; }
+  #jmall-v03-concept .jm-mission-copy { min-width: calc(100% - 60px); }
+  #jmall-v03-concept .jm-mission-count { margin-left: 52px; }
+  #jmall-v03-concept .jm-section-head { align-items: flex-end; }
+  #jmall-v03-concept .jm-sort span { display: none; }
+  #jmall-v03-concept .jm-filter-divider,
+  #jmall-v03-concept .jm-platform-filter { display: none; }
+  #jmall-v03-concept .jm-product-grid { grid-template-columns: 1fr; }
+  #jmall-v03-concept .jm-product-art { min-height: 210px; }
+  #jmall-v03-concept .jm-ai-helper { top: 445px; right: 10px; }
+  #jmall-v03-concept .jm-ai-bubble { top: 500px; right: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #jmall-v03-concept .jm-product,
+  #jmall-v03-concept .jm-mission-track span,
+  #jmall-v03-concept .jm-toast { transition: none; }
+}
+&lt;/style&gt;
+
+&lt;script&gt;
+(() =&gt; {
+  const root = document.getElementById(&#x27;jmall-v03-concept&#x27;);
+  if (!root) return;
+
+  const toast = root.querySelector(&#x27;#jm-toast&#x27;);
+  let toastTimer;
+  const showToast = (message) =&gt; {
+    toast.textContent = message;
+    toast.classList.add(&#x27;is-visible&#x27;);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() =&gt; toast.classList.remove(&#x27;is-visible&#x27;), 1600);
+  };
+
+  const runSearch = () =&gt; {
+    const value = root.querySelector(&#x27;#jm-search-input&#x27;).value.trim();
+    showToast(value ? `正在寻找「${value}」` : &#x27;输入想找的好物吧 ✨&#x27;);
+  };
+  root.querySelector(&#x27;#jm-search-button&#x27;).addEventListener(&#x27;click&#x27;, runSearch);
+  root.querySelector(&#x27;#jm-search-input&#x27;).addEventListener(&#x27;keydown&#x27;, (event) =&gt; {
+    if (event.key !== &#x27;Enter&#x27;) return;
+    event.preventDefault();
+    runSearch();
+  });
+
+  root.querySelectorAll(&#x27;.jm-hotwords button&#x27;).forEach((button) =&gt; {
+    button.addEventListener(&#x27;click&#x27;, () =&gt; {
+      root.querySelector(&#x27;#jm-search-input&#x27;).value = button.textContent;
+      showToast(`已填入「${button.textContent}」`);
+    });
+  });
+
+  const filters = root.querySelectorAll(&#x27;.jm-filter&#x27;);
+  const products = root.querySelectorAll(&#x27;.jm-product&#x27;);
+  filters.forEach((button) =&gt; {
+    button.addEventListener(&#x27;click&#x27;, () =&gt; {
+      filters.forEach((item) =&gt; {
+        item.classList.toggle(&#x27;is-selected&#x27;, item === button);
+        item.setAttribute(&#x27;aria-pressed&#x27;, String(item === button));
+      });
+      const target = button.dataset.filter;
+      let visible = 0;
+      products.forEach((product) =&gt; {
+        const groups = product.dataset.groups.split(&#x27; &#x27;);
+        const show = target === &#x27;all&#x27; || groups.includes(target);
+        product.hidden = !show;
+        if (show) visible += 1;
+      });
+      root.querySelector(&#x27;#jm-result-count&#x27;).textContent = String(visible);
+    });
+  });
+
+  root.querySelectorAll(&#x27;.jm-heart&#x27;).forEach((button) =&gt; {
+    button.addEventListener(&#x27;click&#x27;, () =&gt; {
+      const selected = button.getAttribute(&#x27;aria-pressed&#x27;) !== &#x27;true&#x27;;
+      button.setAttribute(&#x27;aria-pressed&#x27;, String(selected));
+      button.textContent = selected ? &#x27;♥&#x27; : &#x27;♡&#x27;;
+      showToast(selected ? &#x27;已放进心愿收藏 💖&#x27; : &#x27;已取消收藏&#x27;);
+    });
+  });
+
+  let missionCount = 2;
+  const missionFill = root.querySelector(&#x27;#jm-mission-fill&#x27;);
+  const missionCounter = root.querySelector(&#x27;#jm-mission-count&#x27;);
+  const rewardButton = root.querySelector(&#x27;#jm-reward-button&#x27;);
+  const missionTrack = root.querySelector(&#x27;.jm-mission-track&#x27;);
+  root.querySelectorAll(&#x27;.jm-visit&#x27;).forEach((button) =&gt; {
+    button.addEventListener(&#x27;click&#x27;, () =&gt; {
+      if (missionCount &lt; 3) {
+        missionCount += 1;
+        missionFill.style.width = `${(missionCount / 3) * 100}%`;
+        missionCounter.textContent = `${missionCount}/3`;
+        missionTrack.setAttribute(&#x27;aria-valuenow&#x27;, String(missionCount));
+        rewardButton.disabled = false;
+        rewardButton.textContent = &#x27;领取奖励&#x27;;
+        showToast(&#x27;今日任务完成，金币奖励已解锁！&#x27;);
+      } else {
+        showToast(&#x27;正在打开这件好物 ✨&#x27;);
+      }
+    });
+  });
+
+  rewardButton.addEventListener(&#x27;click&#x27;, () =&gt; {
+    if (rewardButton.disabled) return;
+    rewardButton.disabled = true;
+    rewardButton.textContent = &#x27;已领取 ✓&#x27;;
+    showToast(&#x27;+50 金币，离升级又近一步！&#x27;);
+  });
+
+  const helper = root.querySelector(&#x27;#jm-ai-helper&#x27;);
+  const bubble = root.querySelector(&#x27;#jm-ai-bubble&#x27;);
+  helper.addEventListener(&#x27;click&#x27;, () =&gt; {
+    const opening = bubble.hidden;
+    bubble.hidden = !opening;
+    helper.setAttribute(&#x27;aria-expanded&#x27;, String(opening));
+  });
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerdown&quot;, handlePointer);
+    document.removeEventListener(&quot;pointercancel&quot;, handlePointer);
+    document.removeEventListener(&quot;click&quot;, handleTouchClick);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerdown&quot;, handlePointer);
+  document.addEventListener(&quot;pointercancel&quot;, handlePointer);
+  document.addEventListener(&quot;click&quot;, handleTouchClick);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
