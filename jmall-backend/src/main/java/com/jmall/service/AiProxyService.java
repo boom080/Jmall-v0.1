@@ -152,6 +152,17 @@ public class AiProxyService {
         return forwardPost("/api/agent/images/candidates", normalized);
     }
 
+    /**
+     * Free, low-latency intent parsing for the shopper assistant. Product
+     * ranking remains deterministic in the web app and can fall back locally.
+     */
+    public R parseShopperIntent(Map<String, Object> request) {
+        Map<String, Object> payload = new HashMap<>();
+        Object query = request.get("query");
+        payload.put("query", query == null ? "" : query.toString().trim());
+        return forwardPost("/api/shopper/intent", payload);
+    }
+
     public SseEmitter orchestrateStream(Map<String, Object> request) {
         SseEmitter emitter = new SseEmitter(300_000L); // 5 minute timeout
 

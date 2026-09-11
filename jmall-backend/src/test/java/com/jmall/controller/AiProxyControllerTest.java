@@ -169,6 +169,27 @@ class AiProxyControllerTest {
         verify(aiProxyService).findImageCandidates(anyMap());
     }
 
+    @Test
+    void shopperIntent_returnsFastModelInterpretation() throws Exception {
+        when(aiProxyService.parseShopperIntent(anyMap()))
+                .thenReturn(R.ok(Map.of(
+                        "normalizedQuery", "娱乐 游戏 手机数码",
+                        "intentSummary", "娱乐数码",
+                        "keywords", java.util.List.of("游戏", "娱乐"),
+                        "categoryHints", java.util.List.of("手机数码"),
+                        "source", "model")));
+
+        mockMvc.perform(post("/api/ai/shopper/intent")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"想找点玩的\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(10000))
+                .andExpect(jsonPath("$.data.categoryHints[0]").value("手机数码"))
+                .andExpect(jsonPath("$.data.source").value("model"));
+
+        verify(aiProxyService).parseShopperIntent(anyMap());
+    }
+
     // ---- POST /api/ai/orchestrate/stream (SSE) ----
 
     @Test

@@ -40,6 +40,14 @@ public class AiProxyController {
         return aiProxyService.findImageCandidates(request);
     }
 
+    /**
+     * Parse a shopper's fuzzy natural-language request with the cheap/fast model tier.
+     */
+    @PostMapping("/shopper/intent")
+    public R shopperIntent(@RequestBody Map<String, Object> request) {
+        return aiProxyService.parseShopperIntent(request);
+    }
+
     @PostMapping(value = "/orchestrate/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter orchestrateStream(@RequestBody Map<String, Object> request) {
         return aiProxyService.orchestrateStream(request);
