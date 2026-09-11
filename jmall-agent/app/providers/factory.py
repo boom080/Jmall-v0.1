@@ -91,6 +91,7 @@ class ProviderFactory:
         max_tokens: int = 2048,
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: str = "auto",
+        timeout_seconds: Optional[float] = None,
     ) -> Dict[str, Any]:
         """General-purpose chat completion for agent LLM calls.
 
@@ -175,7 +176,7 @@ class ProviderFactory:
                 f"{base_url.rstrip('/')}/chat/completions",
                 headers={"Authorization": f"Bearer {api_key.strip()}"},
                 json=request_body,
-                timeout=self.settings.ai_timeout_seconds or 60,
+                timeout=timeout_seconds or self.settings.ai_timeout_seconds or 60,
             )
             response.raise_for_status()
             payload = response.json()

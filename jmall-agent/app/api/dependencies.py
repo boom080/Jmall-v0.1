@@ -12,6 +12,7 @@ from app.services.embedding_service import EmbeddingService
 from app.services.job_store import JobStore
 from app.services.knowledge_base_service import KnowledgeBaseService
 from app.services.product_copy_workflow_service import ProductCopyWorkflowService
+from app.services.shopper_intent_service import ShopperIntentService
 
 
 def get_job_store(settings: Settings = Depends(get_settings)) -> JobStore:
@@ -20,6 +21,13 @@ def get_job_store(settings: Settings = Depends(get_settings)) -> JobStore:
 
 def get_provider_factory(settings: Settings = Depends(get_settings)) -> ProviderFactory:
     return ProviderFactory(settings)
+
+
+def get_shopper_intent_service(
+    settings: Settings = Depends(get_settings),
+    provider_factory: ProviderFactory = Depends(get_provider_factory),
+) -> ShopperIntentService:
+    return ShopperIntentService(settings, provider_factory)
 
 
 def get_knowledge_base_repository(

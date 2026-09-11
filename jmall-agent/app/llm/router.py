@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 TASK_COMPLEXITY: Dict[str, str] = {
     "market_research": "cheap",       # simple search + summarize
     "keyword_extraction": "cheap",
+    "shopper_intent": "cheap",
     "compliance_check": "cheap",      # rule-based + simple LLM
     "compliance_review": "cheap",     # rule-based + simple LLM
     "copy_generation": "strong",      # creative writing

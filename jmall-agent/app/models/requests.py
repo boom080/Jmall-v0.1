@@ -89,6 +89,18 @@ class ProductCopyRequest(BaseModel):
         return normalized
 
 
+class ShopperIntentRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=80, description="买家自然语言找货需求")
+
+    @field_validator("query", mode="before")
+    @classmethod
+    def normalize_query(cls, value):
+        normalized = str(value or "").strip()
+        if not normalized:
+            raise ValueError("query 不能为空")
+        return normalized
+
+
 class KnowledgeBaseCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=80, description="知识库名称")
     description: Optional[str] = Field(default="", max_length=240, description="知识库说明")

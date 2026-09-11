@@ -45,6 +45,19 @@ class AiModelOptionResponse(BaseModel):
     description: str = ""
 
 
+class ShopperIntentResponse(BaseModel):
+    normalizedQuery: str
+    intentSummary: str
+    keywords: List[str] = Field(default_factory=list)
+    categoryHints: List[str] = Field(default_factory=list)
+    useCases: List[str] = Field(default_factory=list)
+    maxPriceCents: int | None = None
+    sortBy: str = "relevance"
+    provider: str
+    model: str
+    source: str = "model"
+
+
 class KnowledgeBaseOptionResponse(BaseModel):
     id: str
     label: str

@@ -125,6 +125,15 @@ class Settings(BaseSettings):
     agent_strong_model: str = Field("", env="AGENT_STRONG_MODEL")
     agent_medium_model: str = Field("", env="AGENT_MEDIUM_MODEL")
     agent_cheap_model: str = Field("", env="AGENT_CHEAP_MODEL")
+    shopper_intent_timeout_seconds: float = Field(
+        8.0,
+        validation_alias=AliasChoices(
+            "SHOPPER_INTENT_TIMEOUT_SECONDS",
+            "shopper_intent_timeout_seconds",
+        ),
+        gt=0,
+        le=15,
+    )
     agent_cost_budget_daily: float = Field(5.0, env="AGENT_COST_BUDGET_DAILY")
     cost_tracking_enabled: bool = Field(True, env="COST_TRACKING_ENABLED")
     # --- Image Scout settings ---
