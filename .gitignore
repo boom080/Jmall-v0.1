@@ -53,9 +53,10 @@ logs/
 # Project docs must stay tracked: they carry acceptance records and evaluation plans.
 !/docs/**/*.md
 
-# Evaluation artifacts must stay traceable to the commit they were produced from.
-!jmall-eval/**
-!/jmall-eval/**/*.log
+# Evaluation workspace is local-only: scripts, labelled datasets and raw results
+# must not be published. Numbers cited in docs/resume_metrics.md are kept there
+# on purpose; the underlying records stay on the local machine.
+jmall-eval/
 
 # This frontend uses npm/package-lock.json; avoid a second lockfile.
 /jmall-web/pnpm-lock.yaml
