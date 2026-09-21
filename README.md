@@ -1,6 +1,103 @@
-# Jmall
+<div align="center">
+  <img src="./asset/v0.3/brand/jmall-logo-lockup.svg" alt="Jmall" width="280" />
 
-Jmall 是一个 AI 驱动的电商模拟经营平台，同时提供商家上架、买家购物、游戏化经济和 Multi-Agent 商品内容生成能力。
+  <h1>Jmall</h1>
+
+  <p><strong>AI 驱动的电商模拟经营平台</strong></p>
+
+  <p>从一句商品想法出发，让 AI 补全信息、生成平台化内容、寻找图片，并陪你完成上架与经营。</p>
+
+  <p>
+    <img alt="Vue 3" src="https://img.shields.io/badge/Vue-3-42b883?logo=vuedotjs&logoColor=white" />
+    <img alt="Spring Boot" src="https://img.shields.io/badge/Spring_Boot-3-6db33f?logo=springboot&logoColor=white" />
+    <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-Agent-009688?logo=fastapi&logoColor=white" />
+    <img alt="LangGraph" src="https://img.shields.io/badge/LangGraph-Multi--Agent-5b4bdb" />
+    <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ed?logo=docker&logoColor=white" />
+  </p>
+</div>
+
+<p align="center">
+  <img src="./asset/v0.3/designs/marketplace-home.png" alt="Jmall 好物市场首页" width="100%" />
+</p>
+
+Jmall 把 AI 商品生成、模拟电商经营和游戏化反馈放进同一个产品闭环：商家可以把模糊想法变成可发布商品，买家可以发现商品、与 AI 店员对话，并通过任务和奖励持续经营自己的小店。
+
+## 产品界面
+
+### 从商品想法到正式上架
+
+商家既可以用一段自然语言描述商品，也可以填写结构化表单。系统会先判断信息是否形成完整闭环，再由不同 Agent 完成信息补全、目标人群与 SEO 扩充、平台文案生成、图片候选检索和合规检查。
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="./asset/v0.3/designs/page-ai-product-studio.png" alt="AI 商品工作台" />
+      <br />
+      <strong>AI 商品工作台</strong><br />
+      自然语言与表单共同描述商品，右侧实时显示信息完整度，并在信息充分后解锁生成与找图。
+    </td>
+    <td width="50%" valign="top">
+      <img src="./asset/v0.3/designs/page-generation-progress.png" alt="AI Agent 商品生成进度" />
+      <br />
+      <strong>可感知的 Agent 生成过程</strong><br />
+      市场调研、受众扩充、SEO、平台文案、参考图片与合规检查逐步推进，任务离开页面后仍会继续。
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="./asset/v0.3/designs/page-publish-success.png" alt="商品发布成功页面" />
+      <br />
+      <strong>发布成功与成长奖励</strong><br />
+      商品通过门禁后生成发布成功页，并把金币、店铺经验和经营任务反馈给商家。
+    </td>
+    <td width="50%" valign="top">
+      <img src="./asset/v0.3/designs/page-my-products.png" alt="我的商品管理页面" />
+      <br />
+      <strong>可持续编辑的商品资产</strong><br />
+      统一管理草稿与已发布商品，查看内容质量，继续编辑、完善或下架。
+    </td>
+  </tr>
+</table>
+
+### 从发现好物到完成购买
+
+买家侧提供商品流、平台风格筛选、AI 店员模糊意图搜索、商品详情、店铺主页、收藏、购物车和模拟支付。用户输入“通勤用”“想找好玩的”这类短线索时，快速模型会先理解意图，再从当前货架给出最多三个选择。
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="./asset/v0.3/designs/page-product-detail.png" alt="Jmall 商品详情页" />
+      <br />
+      <strong>商品详情</strong><br />
+      将平台化文案、卖点、规格、价格、店铺和 AI 信息说明组织成清晰的购买决策页面。
+    </td>
+    <td width="50%" valign="top">
+      <img src="./asset/v0.3/designs/page-storefront.png" alt="Jmall 店铺主页" />
+      <br />
+      <strong>店铺主页</strong><br />
+      集中展示店铺等级、经营数据、任务进度和在售商品，连接买家浏览与商家经营。
+    </td>
+  </tr>
+</table>
+
+### 吉祥物与游戏化反馈
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="./asset/v0.3/mascot/ai-loading-preview.gif" alt="AI 生成加载动画" width="260" />
+      <br /><strong>AI 正在工作</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="./asset/v0.3/mascot/publish-loading-preview.gif" alt="商品上架加载动画" width="260" />
+      <br /><strong>商品正在上架</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="./asset/v0.3/mascot/reward-preview.gif" alt="任务完成奖励动画" width="260" />
+      <br /><strong>任务完成奖励</strong>
+    </td>
+  </tr>
+</table>
 
 ## 项目做了什么
 
